@@ -393,12 +393,13 @@ class StockRule(models.Model):
                 if chained_origin != po.origin:
                     po.write({'origin': chained_origin})
 
-            # Defer auto-confirmation for SO-driven Hoymay POs. These are the
-            # "first hop" POs created when a user-entered SO in Hoymay (company
-            # 1) is confirmed; they must wait for POS payment before confirming
-            # so the chain only fires after settlement. Subsequent intercompany
-            # POs in That's (company 2) etc. continue to auto-confirm normally.
-            defer_auto_confirm = bool(source_so) and po.company_id.id == 1
-            if po.partner_id.purchase_auto_confirm and not defer_auto_confirm:
+            # Auto-confirm immediately whenever the partner has the flag.
+            # The earlier "defer until POS payment" gate has been dropped at
+            # user request; SO confirm now drives the full intercompany
+            # cascade (Hoymay PO -> That's SO/PO -> HangHeung SO/PO) without
+            # waiting for the customer to settle in POS. The pos_payment
+            # hook (_maybe_confirm_linked_pos) becomes a no-op when POs are
+            # already confirmed and is kept only as a defensive backstop.
+            if po.partner_id.purchase_auto_confirm:
                 po.button_confirm()
         
