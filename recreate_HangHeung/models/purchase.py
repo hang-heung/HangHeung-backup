@@ -156,6 +156,43 @@ class PurchaseOrder(models.Model):
         return result
 
 
+class PurchaseOrderLine(models.Model):
+    _inherit = 'purchase.order.line'
+
+    @api.model
+    def _prepare_purchase_order_line_from_procurement(
+        self, product_id, product_qty, product_uom, location_dest_id, name, origin, company_id, values, po
+    ):
+        """Back-fill sale_line_id when core didn't set it.
+
+        Core sets res['sale_line_id'] = values.get('sale_line_id', False).
+        In HoyMay's Pop+MTO chain that key is dropped before _run_buy is
+        called, so the standard sale_purchase smart button on the SO
+        (counts via purchase.order.line.sale_line_id) shows 0 even though
+        a PO clearly exists for the SO. Resolve the source SO via the
+        existing multi-fallback (sale_line_id -> group_id -> origins),
+        match its line to the procured product, and set sale_line_id.
+        """
+        res = super()._prepare_purchase_order_line_from_procurement(
+            product_id, product_qty, product_uom, location_dest_id,
+            name, origin, company_id, values, po,
+        )
+        if res.get('sale_line_id'):
+            return res
+        StockRule = self.env['stock.rule'].sudo()
+        source_so = StockRule._hh_find_source_sale_order(
+            [values], origins={origin} if origin else None,
+        )
+        if not source_so:
+            return res
+        so_line = source_so.order_line.filtered(
+            lambda l: l.product_id.id == product_id.id and not l.display_type
+        )
+        if so_line:
+            res['sale_line_id'] = so_line[0].id
+        return res
+
+
 class StockRule(models.Model):
     _inherit = 'stock.rule'
 
