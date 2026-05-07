@@ -112,6 +112,16 @@ class StockPicking(models.Model):
             ], limit=1)
 
             if dropship:
+                # HH-CUSTOM: dropship moves go between virtual partner
+                # locations (no real reservation), so they sit at
+                # state='confirmed' with quantity=0 -- which makes the
+                # standard button_validate refuse with "no reserved qty".
+                # Pre-populate move.quantity = product_uom_qty so the
+                # validation passes.
+                for move in dropship.move_ids:
+                    if move.state not in ('done', 'cancel') and not move.quantity:
+                        move.quantity = move.product_uom_qty
+                        move.picked = True
                 dropship.button_validate()
                 dropship.message_post(
                     body=_("The dropship order %s has been successfully validated by %s.") % (dropship.name, self.company_id.name)
