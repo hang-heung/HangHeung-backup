@@ -54,6 +54,18 @@ class StockPicking(models.Model):
             else:
                 record.has_dropship_origin = False
 
+    def action_cancel(self):
+        # HH-CUSTOM: when POS sync_from_ui tries to cancel a Hoymay SO
+        # picking after zeroing its demand, refuse. POS settlement is
+        # payment-only in our pre-order workflow; the goods still need
+        # to flow through the warehouse picking chain.
+        if self.env.context.get('hh_pos_protect_hoymay_pickings'):
+            keep = self.filtered(
+                lambda p: p.company_id.id == 1 and (p.origin or '').startswith('HM/')
+            )
+            return (self - keep).action_cancel()
+        return super().action_cancel()
+
     def _find_related_hh_outgoing(self):
         """Locate the HangHeung outgoing delivery in the same chain.
 
