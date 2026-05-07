@@ -54,6 +54,54 @@ class StockPicking(models.Model):
             else:
                 record.has_dropship_origin = False
 
+    def _find_related_hh_outgoing(self):
+        """Locate the HangHeung outgoing delivery in the same chain.
+
+        Used to gate validation of a Hoymay incoming receipt: the goods
+        physically leave HangHeung's warehouse first; only after that
+        delivery is `done` may Hoymay claim receipt.
+
+        Match strategy: any outgoing picking in HangHeung (company 3)
+        whose `origin` string contains this picking's source token (the
+        last '-' segment of `self.origin`, typically the Hoymay PO name).
+        Returns an empty recordset if no chain is found (e.g. orders that
+        don't fan out to HangHeung).
+        """
+        self.ensure_one()
+        if not self.origin:
+            return self.env['stock.picking']
+        token = self.origin.split('-')[-1].strip()
+        if not token:
+            return self.env['stock.picking']
+        return self.env['stock.picking'].sudo().with_company(False).search([
+            ('company_id', '=', 3),
+            ('picking_type_id.code', '=', 'outgoing'),
+            ('origin', 'like', '%' + token + '%'),
+            ('state', '!=', 'cancel'),
+        ], limit=1)
+
+    def button_validate(self):
+        # HH-CUSTOM: a Hoymay incoming receipt cannot be validated until
+        # the HangHeung outgoing delivery in the same intercompany chain
+        # has been validated -- the goods must have left HangHeung's
+        # warehouse before Hoymay can claim receipt.
+        for picking in self:
+            if (
+                picking.company_id.id == 1
+                and picking.picking_type_id.code == 'incoming'
+            ):
+                hh = picking._find_related_hh_outgoing()
+                if hh and hh.state != 'done':
+                    raise UserError(_(
+                        "Cannot validate %(name)s yet — the upstream "
+                        "HangHeung delivery %(hh)s is in '%(state)s' state. "
+                        "Validate the HangHeung delivery first.",
+                        name=picking.name,
+                        hh=hh.name,
+                        state=dict(hh._fields['state'].selection).get(hh.state, hh.state),
+                    ))
+        return super().button_validate()
+
     def button_dropship_validate(self):
         if self.origin:
             origin_po = self.origin.split('-')[-1].strip()
