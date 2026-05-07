@@ -12,12 +12,13 @@ stock.move.write detect it and refuse to touch HM/* pickings on the
 Hoymay side. Pickings stay alive and only validate later when the
 goods physically pass through.
 """
-from odoo import models
+from odoo import api, models
 
 
 class PosOrder(models.Model):
     _inherit = 'pos.order'
 
+    @api.model
     def sync_from_ui(self, orders):
         return super(
             PosOrder, self.with_context(hh_pos_protect_hoymay_pickings=True)
