@@ -269,6 +269,19 @@ class StockRule(models.Model):
             res['is_b2b_order'] = order.is_b2b_order
             if order.partner_shipping_id:
                 res['dest_address_id'] = order.partner_shipping_id.id
+
+                # HH-CUSTOM: route the PO's incoming receipt to the warehouse
+                # whose partner matches the SO's shipping address. So a SO
+                # shipping to AIR2 (partner 8880) creates a PO whose receipts
+                # land at the AIR2 warehouse, not at the central HoyMay
+                # Warehouse. Falls through silently when no matching
+                # warehouse is found (e.g. external customer addresses).
+                shop_warehouse = self.env['stock.warehouse'].sudo().search([
+                    ('partner_id', '=', order.partner_shipping_id.id),
+                    ('company_id', '=', company_id.id),
+                ], limit=1)
+                if shop_warehouse and shop_warehouse.in_type_id:
+                    res['picking_type_id'] = shop_warehouse.in_type_id.id
         return res
 
     @api.model
