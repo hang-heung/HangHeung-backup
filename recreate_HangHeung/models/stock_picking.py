@@ -1,6 +1,6 @@
 import logging
 
-from odoo import models, fields, api, _
+from odoo import models, fields, api, _, SUPERUSER_ID
 from odoo.exceptions import UserError
 
 _logger = logging.getLogger(__name__)
@@ -12,6 +12,36 @@ class StockPicking(models.Model):
 
     has_dropship_origin = fields.Boolean(string='Has Dropship', default=False, compute="_compute_has_dropship")
     dropship_validated = fields.Boolean(string='Dropship Validated', default=False)
+
+    # HH-CUSTOM: hide a wedding-order Hoymay incoming receipt from stock
+    # users via ir.rule. The sibling Hoymay outgoing is auto-validated
+    # together so the user only ever interacts with the outgoing.
+    hh_wedding_incoming_hidden = fields.Boolean(
+        compute='_compute_hh_wedding_incoming_hidden',
+        store=True,
+    )
+
+    @api.depends('origin', 'company_id', 'picking_type_id', 'state')
+    def _compute_hh_wedding_incoming_hidden(self):
+        SO = self.env['sale.order'].sudo()
+        PO = self.env['purchase.order'].sudo()
+        for p in self:
+            hidden = False
+            if (
+                p.company_id.id == 1
+                and p.picking_type_id.code == 'incoming'
+                and p.state not in ('done', 'cancel')
+                and p.origin
+            ):
+                # Walk origin token: usually the Hoymay PO name like 'HM/Pxxxxx'
+                token = p.origin.split('-')[-1].strip()
+                po = PO.search([('name', '=', token)], limit=1)
+                so_name = (po.origin or '').split('-')[-1].strip() if po else None
+                if so_name:
+                    so = SO.search([('name', '=', so_name)], limit=1)
+                    if so and so.is_wedding_order:
+                        hidden = True
+            p.hh_wedding_incoming_hidden = hidden
 
     reason_code = fields.Many2one(
         'reason.code',
@@ -143,11 +173,35 @@ class StockPicking(models.Model):
             ('state', '!=', 'cancel'),
         ], limit=1)
 
+    def _hh_find_sibling_incoming_for_wedding(self):
+        """For a Hoymay (company 1) outgoing picking that's part of a
+        嫁囍單 wedding-order chain, find the matching Hoymay incoming
+        receipt. The sibling is auto-validated together with the
+        outgoing so the cashier only validates one picking.
+        """
+        self.ensure_one()
+        if (
+            self.company_id.id != 1
+            or self.picking_type_id.code != 'outgoing'
+            or not self.origin
+        ):
+            return self.env['stock.picking']
+        so = self.env['sale.order'].sudo().search([('name', '=', self.origin)], limit=1)
+        if not so or not so.is_wedding_order:
+            return self.env['stock.picking']
+        # Walk move_orig chain to the upstream Hoymay incoming.
+        candidates = self.move_ids.move_orig_ids.picking_id.filtered(
+            lambda p: p.company_id.id == 1
+            and p.picking_type_id.code == 'incoming'
+            and p.state not in ('done', 'cancel')
+        )
+        return candidates[:1]
+
     def button_validate(self):
-        # HH-CUSTOM: a Hoymay incoming receipt cannot be validated until
-        # the HangHeung outgoing delivery in the same intercompany chain
-        # has been validated -- the goods must have left HangHeung's
-        # warehouse before Hoymay can claim receipt.
+        # HH-CUSTOM (1): a Hoymay incoming receipt cannot be validated
+        # until the HangHeung outgoing delivery in the same intercompany
+        # chain has been validated -- the goods must have left
+        # HangHeung's warehouse before Hoymay can claim receipt.
         for picking in self:
             if (
                 picking.company_id.id == 1
@@ -163,6 +217,23 @@ class StockPicking(models.Model):
                         hh=hh.name,
                         state=dict(hh._fields['state'].selection).get(hh.state, hh.state),
                     ))
+
+        # HH-CUSTOM (2): for a 嫁囍單 wedding-order chain, validating the
+        # Hoymay outgoing also auto-validates the sibling Hoymay incoming
+        # so the user only interacts with the outgoing. Run BEFORE super
+        # so stock is in place when the outgoing tries to ship.
+        for picking in self:
+            sibling = picking._hh_find_sibling_incoming_for_wedding()
+            if sibling:
+                self._hh_autofill_received_qty(sibling)
+                try:
+                    sibling.with_user(SUPERUSER_ID).button_validate()
+                except Exception as e:
+                    _logger.warning(
+                        "Auto-validate sibling Hoymay incoming %s failed: %s",
+                        sibling.name, e,
+                    )
+
         return super().button_validate()
 
     def button_dropship_validate(self):

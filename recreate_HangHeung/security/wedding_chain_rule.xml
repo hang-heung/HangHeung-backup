@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Hide the Hoymay-side incoming receipt of a 嫁囍單 wedding-order
+        chain from stock users. The sibling Hoymay outgoing is what the
+        cashier validates; that validation auto-validates the incoming
+        too (see stock_picking.button_validate). This rule keeps the
+        incoming out of the cashier's lists / smart buttons until the
+        auto-validation flips it to done (at which point the computed
+        hh_wedding_incoming_hidden flips back to False).
+    -->
+
+    <record id="rule_hide_wedding_incoming" model="ir.rule">
+        <field name="name">Hide wedding-chain Hoymay incoming pickings</field>
+        <field name="model_id" ref="stock.model_stock_picking"/>
+        <field name="global" eval="False"/>
+        <field name="active" eval="True"/>
+        <field name="groups" eval="[(4, ref('stock.group_stock_user'))]"/>
+        <field name="domain_force">[('hh_wedding_incoming_hidden', '=', False)]</field>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="True"/>
+        <field name="perm_create" eval="True"/>
+        <field name="perm_unlink" eval="True"/>
+    </record>
+</odoo>

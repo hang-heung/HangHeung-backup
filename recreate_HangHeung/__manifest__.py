@@ -3,7 +3,7 @@
 
 {
     'name': 'Hang Heung Customizations',
-    'version': '1.0.43',
+    'version': '1.0.44',
     'summary': 'Includes all Hang Heung customizations',
     'description': """
         This module contains all of Hang Heung customizations.
@@ -16,6 +16,7 @@
         "security/pos_group.xml",
         "security/sales_non_sales_groups.xml",
         "security/role_groups.xml",
+        "security/wedding_chain_rule.xml",
         "views/res_partner.xml",
         "views/customer_category_data.xml",
         "views/res_users.xml",
