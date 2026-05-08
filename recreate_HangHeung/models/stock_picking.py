@@ -68,12 +68,16 @@ class StockPicking(models.Model):
         """Set move.quantity = move.product_uom_qty + picked=True on every
         non-done/cancel move. Used by both the manual button and the
         action_confirm/_action_assign hooks below.
+
+        Always overwrites quantity with demand (does NOT preserve any
+        partial reservation done by action_assign) -- a partial reserve
+        from a transit/stocked source location would otherwise leave the
+        cashier silently shipping less than the PO demanded.
         """
         for move in picking.move_ids:
             if move.state in ('done', 'cancel'):
                 continue
-            if not move.quantity:
-                move.quantity = move.product_uom_qty
+            move.quantity = move.product_uom_qty
             move.picked = True
 
     def _hh_should_autofill_on_ready(self):
