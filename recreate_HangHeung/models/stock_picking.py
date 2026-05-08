@@ -54,6 +54,18 @@ class StockPicking(models.Model):
             else:
                 record.has_dropship_origin = False
 
+    def action_set_qty_to_demand(self):
+        """One-click 'fill received qty = demand' on every move of an
+        incoming receipt. Does NOT validate -- the user still needs to
+        click Validate. Only operates on moves not yet done/cancelled.
+        """
+        for picking in self:
+            for move in picking.move_ids:
+                if move.state not in ('done', 'cancel'):
+                    move.quantity = move.product_uom_qty
+                    move.picked = True
+        return True
+
     def action_cancel(self):
         # HH-CUSTOM: when POS sync_from_ui tries to cancel a Hoymay SO
         # picking after zeroing its demand, refuse. POS settlement is

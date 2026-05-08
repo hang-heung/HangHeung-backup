@@ -29,6 +29,14 @@
                     </control>
                 </xpath>
 
+                <xpath expr="//field[@name='move_ids_without_package']" position="before">
+                    <button name="action_set_qty_to_demand"
+                            string="一鍵輸入收貨量"
+                            type="object"
+                            class="btn-secondary mb-2"
+                            invisible="state in ('done','cancel') or picking_type_code != 'incoming' or company_id != 1"/>
+                </xpath>
+
             </field>
         </record>
     </data>
