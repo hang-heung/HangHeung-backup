@@ -60,11 +60,46 @@ class StockPicking(models.Model):
         click Validate. Only operates on moves not yet done/cancelled.
         """
         for picking in self:
-            for move in picking.move_ids:
-                if move.state not in ('done', 'cancel'):
-                    move.quantity = move.product_uom_qty
-                    move.picked = True
+            self._hh_autofill_received_qty(picking)
         return True
+
+    @staticmethod
+    def _hh_autofill_received_qty(picking):
+        """Set move.quantity = move.product_uom_qty + picked=True on every
+        non-done/cancel move. Used by both the manual button and the
+        action_confirm/_action_assign hooks below.
+        """
+        for move in picking.move_ids:
+            if move.state in ('done', 'cancel'):
+                continue
+            if not move.quantity:
+                move.quantity = move.product_uom_qty
+            move.picked = True
+
+    def _hh_should_autofill_on_ready(self):
+        """True for Hoymay (company 1) incoming receipts. Used to gate
+        the auto-fill that runs on action_confirm / _action_assign so
+        the cashier never has to type qty = demand line by line.
+        """
+        self.ensure_one()
+        return (
+            self.company_id.id == 1
+            and self.picking_type_id.code == 'incoming'
+        )
+
+    def action_confirm(self):
+        res = super().action_confirm()
+        for picking in self:
+            if picking._hh_should_autofill_on_ready():
+                self._hh_autofill_received_qty(picking)
+        return res
+
+    def _action_assign(self):
+        res = super()._action_assign()
+        for picking in self:
+            if picking._hh_should_autofill_on_ready():
+                self._hh_autofill_received_qty(picking)
+        return res
 
     def action_cancel(self):
         # HH-CUSTOM: when POS sync_from_ui tries to cancel a Hoymay SO
