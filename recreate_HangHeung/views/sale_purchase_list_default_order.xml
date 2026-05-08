@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- =====================================================
+         Sales / Purchase list views: sort newest-first by
+         Order Date (date_order). Mirrors the inventory-list
+         default-order overrides; visible Date column matches
+         the sort key so users see what they expect.
+         ===================================================== -->
+
+    <!-- sale.order list view (Sales Orders) -->
+    <record id="sale_view_order_tree_inherit_date_order_desc" model="ir.ui.view">
+        <field name="name">sale.order.list.inherit.date_order.desc</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">date_order desc, id desc</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- sale.order list view (Quotations) -->
+    <record id="sale_view_quotation_tree_inherit_date_order_desc" model="ir.ui.view">
+        <field name="name">sale.order.quotation.list.inherit.date_order.desc</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">date_order desc, id desc</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- sale.order list view (Quotations with onboarding) -->
+    <record id="sale_view_quotation_tree_onboarding_inherit_date_order_desc" model="ir.ui.view">
+        <field name="name">sale.order.quotation.onboarding.list.inherit.date_order.desc</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_quotation_tree_with_onboarding"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">date_order desc, id desc</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order list view (Purchase Orders) -->
+    <record id="purchase_order_tree_inherit_date_order_desc" model="ir.ui.view">
+        <field name="name">purchase.order.list.inherit.date_order.desc</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">date_order desc, id desc</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order alternate tree view -->
+    <record id="purchase_order_view_tree_inherit_date_order_desc" model="ir.ui.view">
+        <field name="name">purchase.order.alt.list.inherit.date_order.desc</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_view_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">date_order desc, id desc</attribute>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- purchase.order KPIs tree view -->
+    <record id="purchase_order_kpis_tree_inherit_date_order_desc" model="ir.ui.view">
+        <field name="name">purchase.order.kpis.list.inherit.date_order.desc</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_kpis_tree"/>
+        <field name="priority">99</field>
+        <field name="arch" type="xml">
+            <xpath expr="//list" position="attributes">
+                <attribute name="default_order">date_order desc, id desc</attribute>
+            </xpath>
+        </field>
+    </record>
+</odoo>

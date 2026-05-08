@@ -3,7 +3,7 @@
 
 {
     'name': 'Hang Heung Customizations',
-    'version': '1.0.44',
+    'version': '1.0.45',
     'summary': 'Includes all Hang Heung customizations',
     'description': """
         This module contains all of Hang Heung customizations.
@@ -33,6 +33,7 @@
         "views/sale_order_view.xml",
         "views/account_move_views_inherit.xml",
         "views/inventory_list_default_order.xml",
+        "views/sale_purchase_list_default_order.xml",
     ],
     'assets': {
         'point_of_sale._assets_pos': [
