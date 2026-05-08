@@ -1,4 +1,8 @@
-from odoo import models
+import logging
+
+from odoo import api, models
+
+_logger = logging.getLogger(__name__)
 
 
 def _is_hoymay_so_picking(picking):
@@ -14,6 +18,26 @@ def _is_hoymay_so_picking(picking):
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        # HH-CUSTOM: if a fresh stock.move lands on a draft picking,
+        # action_confirm the picking so it doesn't sit in draft after
+        # procurement adds moves later. The existing stock.picking.create
+        # hook only fires action_confirm at picking-creation time and
+        # misses pickings that get moves attached afterwards.
+        moves = super().create(vals_list)
+        if not self.env.context.get('skip_auto_confirm'):
+            for picking in moves.mapped('picking_id'):
+                if picking.state == 'draft' and picking.move_ids:
+                    try:
+                        picking.action_confirm()
+                    except Exception as e:
+                        _logger.warning(
+                            "Auto-confirm skipped for picking %s on stock.move.create: %s",
+                            picking.name or '?', e,
+                        )
+        return moves
 
     def write(self, vals):
         # HH-CUSTOM: when POS sync_from_ui tries to zero out the demand on
