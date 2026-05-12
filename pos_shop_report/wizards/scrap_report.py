@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from io import BytesIO
 import base64
 from datetime import datetime
@@ -10,14 +11,21 @@ class ScrapReportWizard(models.TransientModel):
 
     date_from = fields.Date(required=True)
     date_to = fields.Date(required=True)
-    shop_id = fields.Many2one('stock.warehouse', string='Warehouse', required=True)
+    shop_ids = fields.Many2many(
+        'stock.warehouse',
+        string='Warehouses',
+        required=True,
+    )
     scrap_ids = fields.Many2many('stock.scrap', string="Scraps")
 
     def action_export_xlsx(self):
         self.ensure_one()
+        if not self.shop_ids:
+            raise ValidationError("Please select at least one warehouse.")
+
+        view_location_ids = self.shop_ids.mapped('view_location_id').ids
         scrap_locations = self.env['stock.location'].search([
-            # ('scrap_location', '=', True),
-            ('location_id', 'child_of', self.shop_id.view_location_id.id)
+            ('location_id', 'child_of', view_location_ids)
         ])
 
         scrap_location_names = scrap_locations.mapped('complete_name')

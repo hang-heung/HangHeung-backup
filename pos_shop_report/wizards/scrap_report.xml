@@ -5,7 +5,8 @@
         <field name="arch" type="xml">
             <form string="Shop write off Report">
                 <group>
-                    <field name="shop_id"/>
+                    <field name="shop_ids" widget="many2many_tags"
+                           options="{'no_create': True, 'no_open': True}"/>
                     <field name="date_from"/>
                     <field name="date_to"/>
                 </group>
