@@ -66,7 +66,15 @@ class DeliveryReportWizard(models.TransientModel):
             cell.font = Font(bold=True)
         start_col = len(base_headers) + 1
         for idx, product in enumerate(products, start=start_col):
-            cell = ws.cell(row=1, column=idx, value=f"{product.default_code or ''}\n{product.name}")
+            # HH-CUSTOM: 2-line product header --
+            # line 1: '<internal reference> <product name>'
+            # line 2: '<old item number>/<product category>'
+            ref = product.default_code or ''
+            name = product.name or ''
+            old_item = product.old_item_number or ''
+            categ = product.categ_id.name or ''
+            header_value = f"{ref} {name}".strip() + f"\n{old_item}/{categ}"
+            cell = ws.cell(row=1, column=idx, value=header_value)
             cell.alignment = Alignment(horizontal="center", vertical="center", wrap_text=True)
             cell.font = Font(bold=True)
             ws.cell(row=2, column=idx, value="Item Qty").alignment = Alignment(horizontal="center")
