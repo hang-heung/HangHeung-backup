@@ -244,7 +244,7 @@
     </template>
 
     <!-- ===========================================================
-         /my/place-order/done/<so_id> : success page
+         /my/place-order/done/<po_id> : success page
          =========================================================== -->
     <template id="portal_place_order_done" name="Portal Place Order Done">
         <t t-call="portal.portal_layout">
@@ -254,15 +254,11 @@
                     <h1 style="font-size: 3rem; color: #28a745;">
                         <i class="fa fa-check-circle"/> 訂貨成功
                     </h1>
-                    <p class="lead mt-3">Order: <strong t-esc="so.name"/></p>
+                    <p class="lead mt-3">Order: <strong t-esc="po.name"/></p>
                     <p class="text-muted">
-                        <t t-esc="len(so.order_line)"/> line(s) ordered
-                        <t t-if="so.commitment_date">
-                            · 送貨日期 / Delivery: <t t-esc="so.commitment_date.strftime('%Y-%m-%d')"/>
-                        </t>
-                        <t t-if="so.amount_total">
-                            · Total: <t t-esc="'%.2f' % so.amount_total"/>
-                            <t t-esc="so.currency_id.symbol or so.currency_id.name"/>
+                        <t t-esc="len(po.order_line)"/> line(s) ordered
+                        <t t-if="po.date_planned">
+                            · 送貨日期 / Delivery: <t t-esc="po.date_planned.strftime('%Y-%m-%d')"/>
                         </t>
                     </p>
                 </div>

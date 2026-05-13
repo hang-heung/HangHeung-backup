@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 
 HOYMAY_COMPANY_ID = 1
+THATS_VENDOR_PARTNER_ID = 8883  # That's Ltd partner in Hoymay's books
 
 
 class HHPortalOrders(CustomerPortal):
@@ -141,6 +142,10 @@ class HHPortalOrders(CustomerPortal):
     @http.route('/my/place-order/submit', type='http', auth='user',
                 website=True, methods=['POST'], csrf=True)
     def portal_place_order_submit(self, **post):
+        """Create a Hoymay PO with vendor=That's and
+        dest_address=consignee. The standard intercompany rules + HH
+        glue then propagate the chain to That's SO/PO and ultimately a
+        HangHeung dropship delivery to the consignee."""
         control = self._get_user_portal_control()
         if not control:
             return request.redirect('/my')
@@ -149,7 +154,6 @@ class HHPortalOrders(CustomerPortal):
         if not commitment_date:
             return request.redirect('/my/place-order?error=no-date')
 
-        # Enforce +1 day minimum (matches HH _check_commitment_date_min_lead).
         try:
             req_date = date.fromisoformat(commitment_date)
         except ValueError:
@@ -173,36 +177,40 @@ class HHPortalOrders(CustomerPortal):
         if not line_qty:
             return request.redirect('/my/place-order?error=no-qty')
 
-        SO = request.env['sale.order'].sudo()
+        PO = request.env['purchase.order'].sudo()
+        date_planned_str = commitment_date + ' 12:00:00'
         try:
-            so = SO.with_company(HOYMAY_COMPANY_ID).create({
-                'partner_id': control.partner_id.id,
-                'partner_shipping_id': control.partner_id.id,
-                'pricelist_id': control.pricelist_id.id,
+            po = PO.with_company(HOYMAY_COMPANY_ID).create({
                 'company_id': HOYMAY_COMPANY_ID,
-                'commitment_date': commitment_date + ' 12:00:00',
+                'partner_id': THATS_VENDOR_PARTNER_ID,
+                'dest_address_id': control.partner_id.id,
+                'date_planned': date_planned_str,
                 'order_line': [
-                    (0, 0, {'product_id': pid, 'product_uom_qty': qty})
+                    (0, 0, {
+                        'product_id': pid,
+                        'product_qty': qty,
+                        'date_planned': date_planned_str,
+                    })
                     for pid, qty in line_qty.items()
                 ],
             })
-            so.with_company(HOYMAY_COMPANY_ID).action_confirm()
+            po.with_company(HOYMAY_COMPANY_ID).button_confirm()
         except Exception as e:
             _logger.exception("Portal place-order submit failed for partner %s: %s",
                               control.partner_id.id, e)
             return request.redirect('/my/place-order?error=submit-failed')
 
-        return request.redirect(f'/my/place-order/done/{so.id}')
+        return request.redirect(f'/my/place-order/done/{po.id}')
 
-    @http.route('/my/place-order/done/<int:so_id>', type='http',
+    @http.route('/my/place-order/done/<int:po_id>', type='http',
                 auth='user', website=True)
-    def portal_place_order_done(self, so_id, **kw):
-        so = request.env['sale.order'].sudo().browse(so_id).exists()
+    def portal_place_order_done(self, po_id, **kw):
+        po = request.env['purchase.order'].sudo().browse(po_id).exists()
         partner = request.env.user.partner_id.commercial_partner_id
-        if not so or so.partner_id not in (partner, request.env.user.partner_id):
+        if not po or po.dest_address_id not in (partner, request.env.user.partner_id):
             return request.redirect('/my')
         return request.render('hh_portal_orders.portal_place_order_done', {
-            'so': so,
+            'po': po,
             'page_title': '訂貨單 - 完成',
         })
 
