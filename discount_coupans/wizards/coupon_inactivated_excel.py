@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import models, fields, _
 import base64
 import io
@@ -25,7 +27,11 @@ class CouponInactivatedExcelWizard(models.TransientModel):
         if self.from_date:
             domain.append(('create_date', '>=', self.from_date))
         if self.to_date:
-            domain.append(('create_date', '<=', self.to_date))
+            # create_date is a Datetime; a Date cast to Datetime lands at
+            # midnight, so '<= to_date' would silently drop every coupon
+            # created later that same day. Use an exclusive next-day upper
+            # bound to include the whole 'to_date' day.
+            domain.append(('create_date', '<', self.to_date + timedelta(days=1)))
 
         groups = self.env['loyalty.card'].read_group(
             domain,

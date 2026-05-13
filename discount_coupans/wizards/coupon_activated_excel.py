@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import models, fields, api
 import base64
 import io
@@ -22,7 +24,10 @@ class CouponActivatedExcelWizard(models.TransientModel):
         if self.from_date:
             domain.append(('date_activation', '>=', self.from_date))
         if self.to_date:
-            domain.append(('date_activation', '<=', self.to_date))
+            # date_activation is a Datetime; '<= to_date' (Date cast to
+            # midnight) drops every activation later that same day. Use
+            # exclusive next-day upper bound.
+            domain.append(('date_activation', '<', self.to_date + timedelta(days=1)))
 
         coupons = self.env['loyalty.card'].search(domain)
 
