@@ -124,9 +124,13 @@ class DeliveryReportWizard(models.TransientModel):
         file_data = base64.b64encode(fp.read())
         fp.close()
 
-        formatted_date = datetime.now().strftime('%d-%m-%Y')
+        date_from_str = self.date_from.strftime('%d-%m-%Y')
+        date_to_str = self.date_to.strftime('%d-%m-%Y')
+        flag_label = dict(self._fields['flag_filter'].selection).get(
+            self.flag_filter, self.flag_filter,
+        )
         attachment = self.env['ir.attachment'].create({
-            'name': f"DN list Report{formatted_date}.xlsx",
+            'name': f"DN List Report_{date_from_str}-{date_to_str}-{flag_label}.xlsx",
             'type': 'binary',
             'datas': file_data,
             'res_model': self._name,
