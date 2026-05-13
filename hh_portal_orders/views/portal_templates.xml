@@ -160,6 +160,125 @@
     </template>
 
     <!-- ===========================================================
+         /my/place-order : the big 訂貨單 form
+         =========================================================== -->
+    <template id="portal_place_order" name="Portal Place Order (訂貨單)">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">訂貨單</t>
+            <div class="container my-4">
+                <h1 class="text-center my-4"
+                    style="font-size: 3rem; font-weight: bold; color: #1F4E79;">
+                    訂貨單
+                </h1>
+
+                <t t-if="error">
+                    <div class="alert alert-warning" role="alert">
+                        <t t-if="error == 'no-date'">請選擇送貨日期 / Please pick a delivery date.</t>
+                        <t t-if="error == 'date-too-soon'">送貨日期必須為明日或之後 / Delivery date must be tomorrow or later.</t>
+                        <t t-if="error == 'no-qty'">請最少填寫一項數量 / Please enter quantity on at least one item.</t>
+                        <t t-if="error == 'submit-failed'">提交失敗，請聯絡管理員 / Submission failed, please contact your manager.</t>
+                    </div>
+                </t>
+
+                <form action="/my/place-order/submit" method="post" class="hh-portal-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-sm-3 col-form-label fw-bold">
+                            送貨日期 / Delivery Date
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="date" name="commitment_date" class="form-control"
+                                   t-att-min="min_date" t-att-value="min_date" required="required"/>
+                            <small class="text-muted">最早為明日 / Earliest is tomorrow</small>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>POS Category</th>
+                                <th>Internal Reference</th>
+                                <th>Old Item Code</th>
+                                <th>Name</th>
+                                <th style="width: 130px;" class="text-end">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="products" t-as="p">
+                                <tr>
+                                    <td>
+                                        <t t-set="cats" t-value="p.product_tmpl_id.pos_categ_ids.mapped('name')"/>
+                                        <t t-esc="cats[0] if cats else ''"/>
+                                    </td>
+                                    <td><t t-esc="p.default_code or ''"/></td>
+                                    <td><t t-esc="p.old_item_number or ''"/></td>
+                                    <td><t t-esc="p.name"/></td>
+                                    <td>
+                                        <input type="number" min="0" step="any"
+                                               t-attf-name="qty_{{p.id}}"
+                                               class="form-control text-end"
+                                               placeholder="0"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-if="not products">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        產品列表為空 / No products configured for your account.
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between my-4">
+                        <a href="/my" class="btn btn-outline-secondary">取消 / Cancel</a>
+                        <button type="submit" class="btn btn-primary btn-lg" t-if="products">
+                            提交 / Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ===========================================================
+         /my/place-order/done/<so_id> : success page
+         =========================================================== -->
+    <template id="portal_place_order_done" name="Portal Place Order Done">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">訂貨成功</t>
+            <div class="container my-5 text-center">
+                <div class="py-5">
+                    <h1 style="font-size: 3rem; color: #28a745;">
+                        <i class="fa fa-check-circle"/> 訂貨成功
+                    </h1>
+                    <p class="lead mt-3">Order: <strong t-esc="so.name"/></p>
+                    <p class="text-muted">
+                        <t t-esc="len(so.order_line)"/> line(s) ordered
+                        <t t-if="so.commitment_date">
+                            · 送貨日期 / Delivery: <t t-esc="so.commitment_date.strftime('%Y-%m-%d')"/>
+                        </t>
+                        <t t-if="so.amount_total">
+                            · Total: <t t-esc="'%.2f' % so.amount_total"/>
+                            <t t-esc="so.currency_id.symbol or so.currency_id.name"/>
+                        </t>
+                    </p>
+                </div>
+                <div class="mt-4">
+                    <a href="/my/place-order" class="btn btn-outline-primary me-2">
+                        再訂貨 / Place another
+                    </a>
+                    <a href="/my" class="btn btn-outline-secondary">
+                        返回 / Back to Home
+                    </a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ===========================================================
          Shown when the user has no portal.order.control record
          =========================================================== -->
     <template id="portal_no_access" name="Portal No Access">

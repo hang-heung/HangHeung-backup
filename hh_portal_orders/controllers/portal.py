@@ -1,4 +1,5 @@
 import logging
+from datetime import date, timedelta
 
 from odoo import http, _
 from odoo.exceptions import AccessError
@@ -114,6 +115,95 @@ class HHPortalOrders(CustomerPortal):
         return request.render('hh_portal_orders.portal_upload_sales_done', {
             'so': so,
             'page_title': '上載購物紀錄 - 完成',
+        })
+
+    # ------------------------------------------------------------------
+    # /my/place-order (訂貨單)
+    # ------------------------------------------------------------------
+
+    @http.route('/my/place-order', type='http', auth='user', website=True)
+    def portal_place_order(self, error=None, **kw):
+        control = self._get_user_portal_control()
+        if not control:
+            return request.render('hh_portal_orders.portal_no_access', {
+                'page_title': '訂貨單',
+            })
+        products = self._sorted_products(control.product_ids)
+        min_date = (date.today() + timedelta(days=1)).isoformat()
+        return request.render('hh_portal_orders.portal_place_order', {
+            'control': control,
+            'products': products,
+            'min_date': min_date,
+            'page_title': '訂貨單',
+            'error': error,
+        })
+
+    @http.route('/my/place-order/submit', type='http', auth='user',
+                website=True, methods=['POST'], csrf=True)
+    def portal_place_order_submit(self, **post):
+        control = self._get_user_portal_control()
+        if not control:
+            return request.redirect('/my')
+
+        commitment_date = (post.get('commitment_date') or '').strip()
+        if not commitment_date:
+            return request.redirect('/my/place-order?error=no-date')
+
+        # Enforce +1 day minimum (matches HH _check_commitment_date_min_lead).
+        try:
+            req_date = date.fromisoformat(commitment_date)
+        except ValueError:
+            return request.redirect('/my/place-order?error=no-date')
+        if req_date < date.today() + timedelta(days=1):
+            return request.redirect('/my/place-order?error=date-too-soon')
+
+        allowed_ids = set(control.product_ids.ids)
+        line_qty = {}
+        for key, val in post.items():
+            if not key.startswith('qty_'):
+                continue
+            try:
+                pid = int(key[4:])
+                qty = float(val or 0)
+            except (TypeError, ValueError):
+                continue
+            if qty > 0 and pid in allowed_ids:
+                line_qty[pid] = qty
+
+        if not line_qty:
+            return request.redirect('/my/place-order?error=no-qty')
+
+        SO = request.env['sale.order'].sudo()
+        try:
+            so = SO.with_company(HOYMAY_COMPANY_ID).create({
+                'partner_id': control.partner_id.id,
+                'partner_shipping_id': control.partner_id.id,
+                'pricelist_id': control.pricelist_id.id,
+                'company_id': HOYMAY_COMPANY_ID,
+                'commitment_date': commitment_date + ' 12:00:00',
+                'order_line': [
+                    (0, 0, {'product_id': pid, 'product_uom_qty': qty})
+                    for pid, qty in line_qty.items()
+                ],
+            })
+            so.with_company(HOYMAY_COMPANY_ID).action_confirm()
+        except Exception as e:
+            _logger.exception("Portal place-order submit failed for partner %s: %s",
+                              control.partner_id.id, e)
+            return request.redirect('/my/place-order?error=submit-failed')
+
+        return request.redirect(f'/my/place-order/done/{so.id}')
+
+    @http.route('/my/place-order/done/<int:so_id>', type='http',
+                auth='user', website=True)
+    def portal_place_order_done(self, so_id, **kw):
+        so = request.env['sale.order'].sudo().browse(so_id).exists()
+        partner = request.env.user.partner_id.commercial_partner_id
+        if not so or so.partner_id not in (partner, request.env.user.partner_id):
+            return request.redirect('/my')
+        return request.render('hh_portal_orders.portal_place_order_done', {
+            'so': so,
+            'page_title': '訂貨單 - 完成',
         })
 
     # ------------------------------------------------------------------
