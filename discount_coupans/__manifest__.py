@@ -1,6 +1,6 @@
 {
     "name": "Discount Coupons",
-    "version": "1.1.11",
+    "version": "1.1.12",
     "summary": "Manage discount coupons and apply them to sales",
     "description": "This module allows you to create, manage, and apply discount coupons in sales and POS.",
     "author": "CodeTrade India Pvt.Ltd.",
