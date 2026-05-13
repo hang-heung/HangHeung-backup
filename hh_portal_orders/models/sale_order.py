@@ -22,6 +22,12 @@ class SaleOrder(models.Model):
     )
 
     def _action_confirm(self):
+        # Portal record-upload SOs have no delivery, but commitment_date
+        # is required by HH backend UX (otherwise the form refuses to
+        # close). Set it to the order date so the field is populated
+        # without implying a real ship date.
+        for so in self.filtered(lambda o: o.is_portal_record_upload and not o.commitment_date):
+            so.commitment_date = so.date_order
         result = super()._action_confirm()
         for so in self.filtered('is_portal_record_upload'):
             so._hh_post_record_upload_invoice()
