@@ -179,11 +179,20 @@ class HHPortalOrders(CustomerPortal):
 
         PO = request.env['purchase.order'].sudo()
         date_planned_str = commitment_date + ' 12:00:00'
+        dropship_pt = request.env['stock.picking.type'].sudo().search([
+            ('code', '=', 'dropship'),
+            ('company_id', '=', HOYMAY_COMPANY_ID),
+        ], limit=1)
+        if not dropship_pt:
+            _logger.error("Portal place-order: no Dropship picking type for Hoymay (company %s)",
+                          HOYMAY_COMPANY_ID)
+            return request.redirect('/my/place-order?error=submit-failed')
         try:
             po = PO.with_company(HOYMAY_COMPANY_ID).create({
                 'company_id': HOYMAY_COMPANY_ID,
                 'partner_id': THATS_VENDOR_PARTNER_ID,
                 'dest_address_id': control.partner_id.id,
+                'picking_type_id': dropship_pt.id,
                 'date_planned': date_planned_str,
                 'order_line': [
                     (0, 0, {
