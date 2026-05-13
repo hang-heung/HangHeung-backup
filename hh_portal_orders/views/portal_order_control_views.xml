@@ -41,15 +41,10 @@
                     </group>
                     <notebook>
                         <page string="Allowed Products" name="products">
-                            <field name="product_ids">
-                                <list string="Allowed Products">
-                                    <field name="default_code" string="Internal Reference"/>
-                                    <field name="old_item_number" string="Old Item Code"/>
-                                    <field name="name"/>
-                                    <field name="categ_id" optional="hide"/>
-                                    <field name="uom_id" optional="hide"/>
-                                </list>
-                            </field>
+                            <field name="product_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True, 'no_quick_create': True, 'no_create_edit': True}"
+                                   placeholder="輸入舊貨號 / Type Old Item Code to add..."/>
                         </page>
                         <page string="Internal Note" name="note">
                             <field name="note" nolabel="1" placeholder="Notes for the sales team..."/>
