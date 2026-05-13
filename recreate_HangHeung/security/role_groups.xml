@@ -20,6 +20,16 @@
         <field name="comment">Users in this group can see all contacts: internal contacts, all customers (including B2B), and all vendors.</field>
     </record>
 
+    <!-- HH-CUSTOM: members of this group cannot create product.template /
+         product.product records. Enforced in Python on create() in
+         recreate_HangHeung/models/product_template.py. All other access
+         rights of the user are unaffected. Used for the 18 POS shop
+         cashier logins (YLF, MK1, CB1, ... AIR4). -->
+    <record id="group_pos_shop_no_product_create" model="res.groups">
+        <field name="name">POS Shop: No Product Create</field>
+        <field name="comment">Members cannot create new products. All other rights stay intact.</field>
+    </record>
+
     <record id="group_internal_user_only" model="res.groups">
         <field name="name">Internal User</field>
         <field name="comment">Users in this group can only see contacts flagged as Internal Contact.</field>

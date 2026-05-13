@@ -3,7 +3,7 @@
 
 {
     'name': 'Hang Heung Customizations',
-    'version': '1.0.46',
+    'version': '1.0.47',
     'summary': 'Includes all Hang Heung customizations',
     'description': """
         This module contains all of Hang Heung customizations.
