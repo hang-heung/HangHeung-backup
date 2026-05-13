@@ -58,7 +58,7 @@ class DeliveryReportWizard(models.TransientModel):
         ws = wb.active
         ws.title = "Delivery Report"
 
-        base_headers = ["Dn Date", "Dn No", "Client", "Shop Code", "Remark", "嫁囍單", "B2B單"]
+        base_headers = ["Dn Date", "Dn No", "Client", "Shop Code", "來源單據", "Origin Chain", "Remark", "嫁囍單", "B2B單"]
         for col_idx, header in enumerate(base_headers, start=1):
             cell = ws.cell(row=1, column=col_idx, value=header)
             ws.merge_cells(start_row=1, start_column=col_idx, end_row=2, end_column=col_idx)
@@ -71,13 +71,15 @@ class DeliveryReportWizard(models.TransientModel):
             cell.font = Font(bold=True)
             ws.cell(row=2, column=idx, value="Item Qty").alignment = Alignment(horizontal="center")
 
-        ws.column_dimensions[get_column_letter(1)].width = 20
-        ws.column_dimensions[get_column_letter(2)].width = 15
-        ws.column_dimensions[get_column_letter(3)].width = 30
-        ws.column_dimensions[get_column_letter(4)].width = 20
-        ws.column_dimensions[get_column_letter(5)].width = 25
-        ws.column_dimensions[get_column_letter(6)].width = 10
-        ws.column_dimensions[get_column_letter(7)].width = 10
+        ws.column_dimensions[get_column_letter(1)].width = 20   # Dn Date
+        ws.column_dimensions[get_column_letter(2)].width = 15   # Dn No
+        ws.column_dimensions[get_column_letter(3)].width = 30   # Client
+        ws.column_dimensions[get_column_letter(4)].width = 12   # Shop Code
+        ws.column_dimensions[get_column_letter(5)].width = 22   # 來源單據
+        ws.column_dimensions[get_column_letter(6)].width = 40   # Origin Chain
+        ws.column_dimensions[get_column_letter(7)].width = 25   # Remark
+        ws.column_dimensions[get_column_letter(8)].width = 10   # 嫁囍單
+        ws.column_dimensions[get_column_letter(9)].width = 10   # B2B單
         for col_idx in range(start_col, start_col + len(products)):
             ws.column_dimensions[get_column_letter(col_idx)].width = 18
 
@@ -97,6 +99,8 @@ class DeliveryReportWizard(models.TransientModel):
                 picking.name or "",
                 picking.partner_id.name or "",
                 shop_code,
+                picking.origin or "",
+                picking.full_origin_chain or "",
                 note_text,
                 "Y" if picking.is_wedding_order else "",
                 "Y" if picking.is_b2b_order else "",
@@ -112,7 +116,7 @@ class DeliveryReportWizard(models.TransientModel):
             ws.append(row)
             row_idx += 1
 
-        total_row = ["Grand Total", "", "", "", "", "", ""]
+        total_row = ["Grand Total", "", "", "", "", "", "", "", ""]
         for idx, product in enumerate(products, start=start_col):
             col_letter = ws.cell(row=2, column=idx).column_letter
             total_row.append(f"=SUM({col_letter}3:{col_letter}{row_idx-1})")
