@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- ===========================================================
+         Portal home tiles: two big cards linking to the two portal
+         pages, shown only when the logged-in user has a
+         portal.order.control record.
+         =========================================================== -->
+    <template id="portal_my_home_hh"
+              inherit_id="portal.portal_my_home"
+              name="HH Portal Order Home Tiles"
+              priority="20">
+        <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
+            <t t-if="hh_portal_control">
+                <div class="row mb-4 hh-portal-tiles">
+                    <div class="col-md-6 mb-3">
+                        <a href="/my/upload-sales"
+                           class="d-block text-decoration-none">
+                            <div class="card border-primary h-100 text-center">
+                                <div class="card-body py-5">
+                                    <h1 class="card-title mb-2"
+                                        style="font-size: 2.4rem; font-weight: bold; color: #AF8489;">
+                                        上載購物紀錄
+                                    </h1>
+                                    <p class="card-text text-muted">Upload Purchase Records</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <a href="/my/place-order"
+                           class="d-block text-decoration-none">
+                            <div class="card border-secondary h-100 text-center">
+                                <div class="card-body py-5">
+                                    <h1 class="card-title mb-2"
+                                        style="font-size: 2.4rem; font-weight: bold; color: #1F4E79;">
+                                        訂貨單
+                                    </h1>
+                                    <p class="card-text text-muted">Place Order</p>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- ===========================================================
+         /my/upload-sales : the big 上載購物紀錄 form
+         =========================================================== -->
+    <template id="portal_upload_sales" name="Portal Upload Sales (上載購物紀錄)">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">上載購物紀錄</t>
+            <div class="container my-4">
+                <h1 class="text-center my-4"
+                    style="font-size: 3rem; font-weight: bold; color: #AF8489;">
+                    上載購物紀錄
+                </h1>
+
+                <t t-if="error">
+                    <div class="alert alert-warning" role="alert">
+                        <t t-if="error == 'no-date'">請選擇日期 / Please pick a date.</t>
+                        <t t-if="error == 'no-qty'">請最少填寫一項數量 / Please enter quantity on at least one item.</t>
+                        <t t-if="error == 'submit-failed'">提交失敗，請聯絡管理員 / Submission failed, please contact your manager.</t>
+                    </div>
+                </t>
+
+                <form action="/my/upload-sales/submit" method="post" class="hh-portal-form">
+                    <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <div class="row mb-3 align-items-center">
+                        <label class="col-sm-3 col-form-label fw-bold">
+                            日期 / Order Date
+                        </label>
+                        <div class="col-sm-4">
+                            <input type="date" name="date_order" class="form-control" required="required"/>
+                        </div>
+                    </div>
+
+                    <table class="table table-bordered table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>POS Category</th>
+                                <th>Internal Reference</th>
+                                <th>Old Item Code</th>
+                                <th>Name</th>
+                                <th style="width: 130px;" class="text-end">Quantity</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="products" t-as="p">
+                                <tr>
+                                    <td>
+                                        <t t-set="cats" t-value="p.product_tmpl_id.pos_categ_ids.mapped('name')"/>
+                                        <t t-esc="cats[0] if cats else ''"/>
+                                    </td>
+                                    <td><t t-esc="p.default_code or ''"/></td>
+                                    <td><t t-esc="p.old_item_number or ''"/></td>
+                                    <td><t t-esc="p.name"/></td>
+                                    <td>
+                                        <input type="number" min="0" step="any"
+                                               t-attf-name="qty_{{p.id}}"
+                                               class="form-control text-end"
+                                               placeholder="0"/>
+                                    </td>
+                                </tr>
+                            </t>
+                            <t t-if="not products">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-4">
+                                        產品列表為空 / No products configured for your account.
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+                    </table>
+
+                    <div class="d-flex justify-content-between my-4">
+                        <a href="/my" class="btn btn-outline-secondary">取消 / Cancel</a>
+                        <button type="submit" class="btn btn-primary btn-lg" t-if="products">
+                            提交 / Submit
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </t>
+    </template>
+
+    <!-- ===========================================================
+         /my/upload-sales/done/<so_id> : success page
+         =========================================================== -->
+    <template id="portal_upload_sales_done" name="Portal Upload Sales Done">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">上載成功</t>
+            <div class="container my-5 text-center">
+                <div class="py-5">
+                    <h1 style="font-size: 3rem; color: #28a745;">
+                        <i class="fa fa-check-circle"/> 上載成功
+                    </h1>
+                    <p class="lead mt-3">Order: <strong t-esc="so.name"/></p>
+                    <p class="text-muted">
+                        <t t-esc="len(so.order_line)"/> line(s) recorded
+                        <t t-if="so.amount_total">
+                            · Total: <t t-esc="'%.2f' % so.amount_total"/>
+                            <t t-esc="so.currency_id.symbol or so.currency_id.name"/>
+                        </t>
+                    </p>
+                </div>
+                <div class="mt-4">
+                    <a href="/my/upload-sales" class="btn btn-outline-primary me-2">
+                        再上載 / Upload another
+                    </a>
+                    <a href="/my" class="btn btn-outline-secondary">
+                        返回 / Back to Home
+                    </a>
+                </div>
+            </div>
+        </t>
+    </template>
+
+    <!-- ===========================================================
+         Shown when the user has no portal.order.control record
+         =========================================================== -->
+    <template id="portal_no_access" name="Portal No Access">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">Access Not Configured</t>
+            <div class="container my-5 text-center py-5">
+                <h1 style="font-size: 2rem;">尚未開通 / Access not configured</h1>
+                <p class="lead text-muted">
+                    請聯絡恆香為您開通此功能。<br/>
+                    Please contact HangHeung to set up your portal access.
+                </p>
+                <a href="/my" class="btn btn-outline-secondary mt-3">返回 / Back to Home</a>
+            </div>
+        </t>
+    </template>
+
+</odoo>

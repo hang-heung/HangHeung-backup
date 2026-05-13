@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Portal users may only see their own portal.order.control
+         record (the controller already uses sudo to read it, but
+         this rule restricts non-sudo reads — e.g. via the web client
+         or RPC). -->
+    <record id="rule_portal_order_control_portal_own" model="ir.rule">
+        <field name="name">Portal user reads own portal.order.control</field>
+        <field name="model_id" ref="model_portal_order_control"/>
+        <field name="domain_force">[
+            '|',
+            ('partner_id', '=', user.partner_id.id),
+            ('partner_id', '=', user.partner_id.commercial_partner_id.id),
+        ]</field>
+        <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+        <field name="perm_read" eval="True"/>
+        <field name="perm_write" eval="False"/>
+        <field name="perm_create" eval="False"/>
+        <field name="perm_unlink" eval="False"/>
+    </record>
+
+</odoo>
