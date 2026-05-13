@@ -75,6 +75,15 @@
                     <p t-esc="last_order_number" class="m-0"/>
                 </div>
             </div>
+            <!-- HH-CUSTOM: 嫁囍單 / B2B單 isolation flags carried from the
+                 source SO through the intercompany chain. Shows on both
+                 delivery slips and receipt slips. -->
+            <div t-if="o.is_wedding_order or o.is_b2b_order"
+                 style="margin: 4px 0 8px 0; padding: 4px 6px; border: 1px solid #AF8489; background: #FFF8F8; font-size: 12pt;">
+                <strong style="color: #AF8489">訂單類型 / Order Type:</strong>
+                <span t-if="o.is_wedding_order" style="margin-left: 8px; padding: 1px 6px; background: #C8102E; color: #fff; border-radius: 3px; font-weight: bold;">嫁囍單</span>
+                <span t-if="o.is_b2b_order" style="margin-left: 8px; padding: 1px 6px; background: #1F4E79; color: #fff; border-radius: 3px; font-weight: bold;">B2B單</span>
+            </div>
         </xpath>
 
 

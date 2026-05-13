@@ -17,6 +17,8 @@
 
                 <xpath expr="//field[@name='origin']" position="after">
                     <field name="full_origin_chain" readonly="1"/>
+                    <field name="is_wedding_order" readonly="1" widget="boolean_toggle"/>
+                    <field name="is_b2b_order" readonly="1" widget="boolean_toggle"/>
                 </xpath>
 
                 <xpath expr="//field[@name='move_ids_without_package']/list" position="inside">

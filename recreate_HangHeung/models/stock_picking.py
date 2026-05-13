@@ -21,6 +21,41 @@ class StockPicking(models.Model):
         store=True,
     )
 
+    # HH-CUSTOM: surface the upstream SO/PO's 嫁囍單 / B2B單 flag on the
+    # picking itself so users see it on the delivery/receipt order form
+    # and the delivery slip / receipt slip printout. Read from any source
+    # sale.order or purchase.order linked to this picking's moves -- the
+    # intercompany chain already propagates these flags to every step.
+    is_wedding_order = fields.Boolean(
+        string='嫁囍單',
+        compute='_compute_is_wedding_b2b_flags',
+        store=True,
+    )
+    is_b2b_order = fields.Boolean(
+        string='B2B單',
+        compute='_compute_is_wedding_b2b_flags',
+        store=True,
+    )
+
+    @api.depends(
+        'move_ids.group_id.sale_id.is_wedding_order',
+        'move_ids.group_id.sale_id.is_b2b_order',
+        'move_ids.purchase_line_id.order_id.is_wedding_order',
+        'move_ids.purchase_line_id.order_id.is_b2b_order',
+    )
+    def _compute_is_wedding_b2b_flags(self):
+        for p in self:
+            sales = p.move_ids.group_id.sale_id
+            pos = p.move_ids.purchase_line_id.order_id
+            p.is_wedding_order = (
+                any(sales.mapped('is_wedding_order'))
+                or any(pos.mapped('is_wedding_order'))
+            )
+            p.is_b2b_order = (
+                any(sales.mapped('is_b2b_order'))
+                or any(pos.mapped('is_b2b_order'))
+            )
+
     @api.depends('origin', 'company_id', 'picking_type_id', 'state')
     def _compute_hh_wedding_incoming_hidden(self):
         SO = self.env['sale.order'].sudo()

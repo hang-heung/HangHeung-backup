@@ -15,6 +15,20 @@ class DeliveryReportWizard(models.TransientModel):
     date_to = fields.Date(required=True)
     file = fields.Binary('File', readonly=True)
     file_name = fields.Char('Filename', readonly=True)
+    # HH-CUSTOM: filter the export by isolation flag. 'all' keeps every
+    # delivery; 'wedding_only' / 'b2b_only' / 'either' restrict to the
+    # corresponding 嫁囍單 / B2B單 records carried from the source SO.
+    flag_filter = fields.Selection(
+        [
+            ('all', 'All Orders'),
+            ('wedding_only', '嫁囍單 only'),
+            ('b2b_only', 'B2B單 only'),
+            ('either', '嫁囍單 + B2B單'),
+        ],
+        string='Order Type Filter',
+        default='all',
+        required=True,
+    )
 
     def action_generate_report(self):
         # date_to is a Date but scheduled_date is a Datetime; use exclusive
@@ -28,6 +42,14 @@ class DeliveryReportWizard(models.TransientModel):
             ('state', 'in', ['assigned', 'confirmed', 'waiting', 'done']),
         ])
 
+        # HH-CUSTOM: apply the wedding/B2B flag filter selected on the wizard.
+        if self.flag_filter == 'wedding_only':
+            pickings = pickings.filtered(lambda p: p.is_wedding_order)
+        elif self.flag_filter == 'b2b_only':
+            pickings = pickings.filtered(lambda p: p.is_b2b_order)
+        elif self.flag_filter == 'either':
+            pickings = pickings.filtered(lambda p: p.is_wedding_order or p.is_b2b_order)
+
         products = self.env['product.product'].browse(
             pickings.move_ids_without_package.product_id.ids
         ).sorted(key=lambda p: p.name)
@@ -36,7 +58,7 @@ class DeliveryReportWizard(models.TransientModel):
         ws = wb.active
         ws.title = "Delivery Report"
 
-        base_headers = ["Dn Date", "Dn No", "Client", "Shop Code", "Remark"]
+        base_headers = ["Dn Date", "Dn No", "Client", "Shop Code", "Remark", "嫁囍單", "B2B單"]
         for col_idx, header in enumerate(base_headers, start=1):
             cell = ws.cell(row=1, column=col_idx, value=header)
             ws.merge_cells(start_row=1, start_column=col_idx, end_row=2, end_column=col_idx)
@@ -54,6 +76,8 @@ class DeliveryReportWizard(models.TransientModel):
         ws.column_dimensions[get_column_letter(3)].width = 30
         ws.column_dimensions[get_column_letter(4)].width = 20
         ws.column_dimensions[get_column_letter(5)].width = 25
+        ws.column_dimensions[get_column_letter(6)].width = 10
+        ws.column_dimensions[get_column_letter(7)].width = 10
         for col_idx in range(start_col, start_col + len(products)):
             ws.column_dimensions[get_column_letter(col_idx)].width = 18
 
@@ -73,7 +97,9 @@ class DeliveryReportWizard(models.TransientModel):
                 picking.name or "",
                 picking.partner_id.name or "",
                 shop_code,
-                note_text
+                note_text,
+                "Y" if picking.is_wedding_order else "",
+                "Y" if picking.is_b2b_order else "",
             ]
 
             for product in products:
@@ -86,7 +112,7 @@ class DeliveryReportWizard(models.TransientModel):
             ws.append(row)
             row_idx += 1
 
-        total_row = ["Grand Total", "", "", "", ""]
+        total_row = ["Grand Total", "", "", "", "", "", ""]
         for idx, product in enumerate(products, start=start_col):
             col_letter = ws.cell(row=2, column=idx).column_letter
             total_row.append(f"=SUM({col_letter}3:{col_letter}{row_idx-1})")
