@@ -5,7 +5,7 @@ import base64
 from openpyxl import Workbook
 from bs4 import BeautifulSoup
 from openpyxl.utils import get_column_letter
-from openpyxl.styles import Alignment, Font
+from openpyxl.styles import Alignment, Font, PatternFill
 
 class DeliveryReportWizard(models.TransientModel):
     _name = 'delivery.report.wizard'
@@ -57,6 +57,13 @@ class DeliveryReportWizard(models.TransientModel):
         wb = Workbook()
         ws = wb.active
         ws.title = "Delivery Report"
+
+        # HH-CUSTOM: per-cell fills that signal whether each product qty
+        # reflects what's already shipped vs what's still pending. Cyan
+        # = picking state 'done' (fulfilled). Yellow = pre-validation
+        # demand (to be fulfilled).
+        fulfilled_fill = PatternFill(start_color="00FFFF", end_color="00FFFF", fill_type="solid")
+        pending_fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
 
         base_headers = ["Dn Date", "Dn No", "Client", "Shop Code", "來源單據", "Origin Chain", "Remark", "嫁囍單", "B2B單"]
         for col_idx, header in enumerate(base_headers, start=1):
@@ -126,6 +133,14 @@ class DeliveryReportWizard(models.TransientModel):
                 row.append(qty if qty != 0 else "")
 
             ws.append(row)
+            # Apply fill to product-qty cells based on the picking state:
+            # done -> cyan, otherwise -> yellow. Skip empty cells.
+            qty_fill = fulfilled_fill if picking.state == 'done' else pending_fill
+            for col_offset in range(len(products)):
+                col_idx = start_col + col_offset
+                cell = ws.cell(row=ws.max_row, column=col_idx)
+                if cell.value not in (None, ''):
+                    cell.fill = qty_fill
             row_idx += 1
 
         total_row = ["Grand Total", "", "", "", "", "", "", "", ""]
