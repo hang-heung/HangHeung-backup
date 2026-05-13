@@ -58,3 +58,36 @@ class ProductProduct(models.Model):
     def create(self, vals_list):
         _hh_block_product_create_for_shop_user(self.env)
         return super().create(vals_list)
+
+    @api.model
+    def name_search(self, name='', args=None, operator='ilike', limit=100):
+        """Make Old Item Code (old_item_number) the top-priority match
+        in product name_search across the system. Returns
+        old_item_number matches first, then falls through to core's
+        progressive search (default_code -> barcode -> name etc.) for
+        any remaining slots.
+        """
+        if not name:
+            return super().name_search(name=name, args=args, operator=operator, limit=limit)
+        from odoo.osv import expression
+        base_domain = args or []
+        old_matches = self.search_fetch(
+            expression.AND([
+                base_domain,
+                [('old_item_number', operator, name)],
+            ]),
+            ['display_name'],
+            limit=limit,
+        )
+        rest_limit = (limit or 100) - len(old_matches)
+        other_results = []
+        if rest_limit > 0:
+            exclude_ids = old_matches.ids
+            std_args = (
+                expression.AND([base_domain, [('id', 'not in', exclude_ids)]])
+                if exclude_ids else base_domain
+            )
+            other_results = super().name_search(
+                name=name, args=std_args, operator=operator, limit=rest_limit,
+            )
+        return [(p.id, p.display_name) for p in old_matches.sudo()] + other_results
