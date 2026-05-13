@@ -107,8 +107,12 @@ class DeliveryReportWizard(models.TransientModel):
             ]
 
             for product in products:
+                # Show picked qty once the move is done; otherwise fall
+                # back to demanded qty so non-validated pickings still
+                # appear with the "supposed to ship" quantity.
                 qty = sum(
-                    line.quantity for line in picking.move_ids_without_package
+                    (line.quantity if line.state == 'done' else line.product_uom_qty)
+                    for line in picking.move_ids_without_package
                     if line.product_id == product
                 )
                 row.append(qty if qty != 0 else "")
