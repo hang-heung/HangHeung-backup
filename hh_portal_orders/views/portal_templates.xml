@@ -50,21 +50,20 @@
          Rename portal home tile titles for HH consignee semantics:
            "Your Orders"  → 銷售紀錄  (Sales Records)
            "Our Orders"   → 補貨紀錄  (Replenishment Records)
+
+         Inherits portal.portal_my_home (not the sale/purchase
+         children) so my priority=30 runs after sale (20) and
+         purchase (25), meaning their position="inside" content is
+         already merged into the arch and findable by xpath.
          =========================================================== -->
-    <template id="portal_my_home_rename_sale"
-              inherit_id="sale.portal_my_home_sale"
-              name="HH Rename Your Orders → 銷售紀錄"
-              priority="30">
-        <xpath expr="//div[@id='portal_client_category']//t[@t-set='title']" position="replace">
+    <template id="portal_my_home_rename_titles"
+              inherit_id="portal.portal_my_home"
+              name="HH Rename Portal Home Tile Titles"
+              priority="35">
+        <xpath expr="//div[@id='portal_client_category']//t[@t-set='url' and contains(@t-value, '/my/orders')]/preceding-sibling::t[@t-set='title']" position="replace">
             <t t-set="title">銷售紀錄</t>
         </xpath>
-    </template>
-
-    <template id="portal_my_home_rename_purchase"
-              inherit_id="purchase.portal_my_home_purchase"
-              name="HH Rename Our Orders → 補貨紀錄"
-              priority="30">
-        <xpath expr="//div[@id='portal_vendor_category']//t[@t-set='title' and text()='Our Orders']" position="replace">
+        <xpath expr="//div[@id='portal_vendor_category']//t[@t-set='url' and contains(@t-value, '/my/purchase')]/preceding-sibling::t[@t-set='title']" position="replace">
             <t t-set="title">補貨紀錄</t>
         </xpath>
     </template>
