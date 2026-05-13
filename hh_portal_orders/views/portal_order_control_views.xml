@@ -44,6 +44,7 @@
                             <field name="product_ids">
                                 <list string="Allowed Products">
                                     <field name="default_code" string="Internal Reference"/>
+                                    <field name="old_item_number" string="Old Item Code"/>
                                     <field name="name"/>
                                     <field name="categ_id" optional="hide"/>
                                     <field name="uom_id" optional="hide"/>
