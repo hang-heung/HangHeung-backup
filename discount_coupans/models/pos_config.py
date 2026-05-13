@@ -107,6 +107,9 @@ class PosConfig(models.Model):
             'status': 'activated',
             'date_activation': fields.Datetime.now(),
             'date_sale': fields.Datetime.now(),
+            # HH-CUSTOM: track which POS shop scanned/activated the coupon
+            # so reports can show Activation Store alongside Redeem Store.
+            'activation_store_id': self.id,
         })
 
         return {

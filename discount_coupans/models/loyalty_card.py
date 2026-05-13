@@ -19,6 +19,10 @@ class LoyaltyCard(models.Model):
 
     store_id = fields.Many2one('pos.config', string='Store')
     allocated_store_id = fields.Many2one('pos.config', string="Allocated Store", readonly=True)
+    # HH-CUSTOM: which POS shop registered the activation of this coupon
+    # (use_coupon_code). Populated forward from this version onward;
+    # historical activated coupons keep this NULL.
+    activation_store_id = fields.Many2one('pos.config', string="Activation Store", readonly=True)
     code = fields.Char(string='Code', readonly=True, required=False, copy=False,default=False)
     security_code = fields.Char(
         string='Security Code',

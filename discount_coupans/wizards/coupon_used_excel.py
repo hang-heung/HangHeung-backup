@@ -38,13 +38,14 @@ class CouponUsedExcelWizard(models.TransientModel):
         })
         cell_format = workbook.add_format({'text_wrap': True, 'valign': 'top'})
 
-        headers = ['Program Name', 'Code', 'Prefix', 'Store', 'Status']
+        headers = ['Program Name', 'Code', 'Prefix', 'Redeem Store', 'Status', 'Activation Store']
 
         sheet.set_column(0, 0, 30, cell_format)
         sheet.set_column(1, 1, 20, cell_format)
         sheet.set_column(2, 2, 15, cell_format)
         sheet.set_column(3, 3, 30, cell_format)
         sheet.set_column(4, 4, 20, cell_format)
+        sheet.set_column(5, 5, 30, cell_format)
 
         for col, head in enumerate(headers):
             sheet.write(0, col, head, header_format)
@@ -54,8 +55,12 @@ class CouponUsedExcelWizard(models.TransientModel):
             sheet.write(row, 0, coupon.program_id.name or '', cell_format)
             sheet.write(row, 1, coupon.code or '', cell_format)
             sheet.write(row, 2, coupon.prefix or '', cell_format)
-            sheet.write(row, 3, coupon.store_id.display_name or '', cell_format)
+            # HH-CUSTOM: 'Store' column was reading store_id which is NULL
+            # on every redeemed coupon. The correct source is
+            # redeem_shop_id (set when the coupon is actually redeemed).
+            sheet.write(row, 3, coupon.redeem_shop_id.display_name or '', cell_format)
             sheet.write(row, 4, 'Redeemed', cell_format)
+            sheet.write(row, 5, coupon.activation_store_id.display_name or '', cell_format)
             row += 1
 
         workbook.close()
