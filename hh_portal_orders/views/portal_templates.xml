@@ -9,7 +9,7 @@
     <template id="portal_my_home_hh"
               inherit_id="portal.portal_my_home"
               name="HH Portal Order Home Tiles"
-              priority="20">
+              priority="30">
         <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
             <t t-if="hh_portal_control">
                 <div class="row mb-4 hh-portal-tiles">
@@ -43,6 +43,29 @@
                     </div>
                 </div>
             </t>
+        </xpath>
+    </template>
+
+    <!-- ===========================================================
+         Rename portal home tile titles for HH consignee semantics:
+           "Your Orders"  → 銷售紀錄  (Sales Records)
+           "Our Orders"   → 補貨紀錄  (Replenishment Records)
+         =========================================================== -->
+    <template id="portal_my_home_rename_sale"
+              inherit_id="sale.portal_my_home_sale"
+              name="HH Rename Your Orders → 銷售紀錄"
+              priority="30">
+        <xpath expr="//div[@id='portal_client_category']//t[@t-set='title']" position="replace">
+            <t t-set="title">銷售紀錄</t>
+        </xpath>
+    </template>
+
+    <template id="portal_my_home_rename_purchase"
+              inherit_id="purchase.portal_my_home_purchase"
+              name="HH Rename Our Orders → 補貨紀錄"
+              priority="30">
+        <xpath expr="//div[@id='portal_vendor_category']//t[@t-set='title' and text()='Our Orders']" position="replace">
+            <t t-set="title">補貨紀錄</t>
         </xpath>
     </template>
 
