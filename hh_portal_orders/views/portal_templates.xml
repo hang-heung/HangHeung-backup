@@ -66,6 +66,14 @@
         <xpath expr="//div[@id='portal_vendor_category']//t[@t-set='url' and contains(@t-value, '/my/purchase')]/preceding-sibling::t[@t-set='title']" position="replace">
             <t t-set="title">補貨紀錄</t>
         </xpath>
+
+        <!-- Hide 連線及保安 (Connection &amp; Security) tile -->
+        <xpath expr="//div[@id='portal_common_category']" position="attributes">
+            <attribute name="t-if">False</attribute>
+        </xpath>
+
+        <!-- Hide 發票 (Your Invoices + Our Invoices) tiles -->
+        <xpath expr="//t[@t-call='portal.portal_docs_entry'][t[@t-set='url' and contains(@t-value, '/my/invoices')]]" position="replace"/>
     </template>
 
     <!-- ===========================================================
