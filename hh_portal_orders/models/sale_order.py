@@ -27,6 +27,20 @@ class SaleOrder(models.Model):
             so._hh_post_record_upload_invoice()
         return result
 
+    # ------------------------------------------------------------------
+    # Bypass the HH pre-order constraints for portal record-upload SOs.
+    # A 上載購物紀錄 SO has no delivery, so partner_shipping_id and
+    # commitment_date don't apply.
+    # ------------------------------------------------------------------
+
+    def _check_pre_order_required_fields(self):
+        normal = self.filtered(lambda o: not o.is_portal_record_upload)
+        return super(SaleOrder, normal)._check_pre_order_required_fields()
+
+    def _check_commitment_date_min_lead(self):
+        normal = self.filtered(lambda o: not o.is_portal_record_upload)
+        return super(SaleOrder, normal)._check_commitment_date_min_lead()
+
     def _hh_post_record_upload_invoice(self):
         """Create + post an invoice on a record-upload SO. Forces
         invoiceable qty to product_uom_qty so the call works even when
