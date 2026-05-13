@@ -66,20 +66,27 @@ class POSShopReportWizard(models.TransientModel):
         PosLine = self.env['pos.order.line']
         StockMove = self.env['stock.move']
         StockScrap = self.env['stock.scrap']
+        StockQuant = self.env['stock.quant']
 
         warehouse = self.shop_id.picking_type_id.warehouse_id
         if not warehouse:
             warehouse = self.env['stock.warehouse'].search(
                 [('name', '=', self.shop_id.name)], limit=1)
 
+        # Compute the shop's internal locations early so both the
+        # POS-driven and stock-driven candidate sets can use them.
+        shop_internal_location_ids = []
+        if warehouse and warehouse.view_location_id:
+            shop_internal_location_ids = self.env['stock.location'].search([
+                ('id', 'child_of', warehouse.view_location_id.id),
+                ('usage', '=', 'internal'),
+            ]).ids
+
         lines = PosLine.search([
             ('order_id.config_id', '=', self.shop_id.id),
             ('order_id.date_order', '>=', self.date_start),
             ('order_id.date_order', '<=', self.date_end),
         ])
-
-        if not lines:
-            raise ValidationError("No record Found.")
 
         result = {}
         for line in lines.filtered(
@@ -117,52 +124,108 @@ class POSShopReportWizard(models.TransientModel):
             res['sales_amount'] += qty * price
             res['discount_amount'] += abs(discount)
 
+        prev_date = self.date_start - timedelta(days=1)
+
+        # HH-CUSTOM: also include any product touched by the shop in the
+        # period via stock_in / scrap / current quants, so the report
+        # shows every item where ANY of {previous_stock, stock_in,
+        # scrap_qty, sales_qty, sales_refund_qty} ends up non-zero.
+        # An empty stub row is created for each candidate; metrics get
+        # filled in below; rows still all-zero are dropped at the end.
+        if shop_internal_location_ids:
+            extra_pids = set()
+            for grp in StockQuant.read_group(
+                domain=[
+                    ('location_id', 'in', shop_internal_location_ids),
+                    ('quantity', '!=', 0),
+                ],
+                fields=['product_id'],
+                groupby=['product_id'],
+            ):
+                extra_pids.add(grp['product_id'][0])
+            for grp in StockMove.read_group(
+                domain=[
+                    ('date', '>=', self.date_start),
+                    ('date', '<=', self.date_end),
+                    ('state', '=', 'done'),
+                    ('location_dest_id', 'in', shop_internal_location_ids),
+                    ('location_id', 'not in', shop_internal_location_ids),
+                ],
+                fields=['product_id'],
+                groupby=['product_id'],
+            ):
+                extra_pids.add(grp['product_id'][0])
+            for grp in StockScrap.read_group(
+                domain=[
+                    ('date_done', '>=', self.date_start),
+                    ('date_done', '<=', self.date_end),
+                    ('state', '=', 'done'),
+                    ('location_id', 'in', shop_internal_location_ids),
+                ],
+                fields=['product_id'],
+                groupby=['product_id'],
+            ):
+                extra_pids.add(grp['product_id'][0])
+            extra_pids -= set(result.keys())
+            for p in self.env['product.product'].browse(list(extra_pids)):
+                result[p.id] = {
+                    '_product_id': p.id,
+                    'sku': p.default_code or '',
+                    'name': p.name or '',
+                    'previous_stock': 0,
+                    'stock_in': 0,
+                    'scrap_qty': 0,
+                    'sales_qty': 0,
+                    'sales_refund_qty': 0,
+                    'total_qty_today': 0,
+                    'sales_amount': 0,
+                    'discount_amount': 0,
+                    'final_amount': 0,
+                }
+
+        if not result:
+            raise ValidationError("No record Found.")
+
         product_ids = list(result.keys())
         products = self.env['product.product'].browse(product_ids)
 
         # previous_stock: qty on hand at end of day before date_start, scoped to the shop's warehouse
         prev_stock_by_id = {pid: 0 for pid in product_ids}
         if warehouse:
-            prev_date = self.date_start - timedelta(days=1)
             for p in products.with_context(to_date=prev_date, warehouse_id=warehouse.id):
                 prev_stock_by_id[p.id] = p.qty_available
 
         # stock_in: stock.move arriving INTO the shop's warehouse from outside the shop
         stock_in_by_id = defaultdict(float)
         scrap_by_id = defaultdict(float)
-        if warehouse and warehouse.view_location_id:
-            shop_internal_location_ids = self.env['stock.location'].search([
-                ('id', 'child_of', warehouse.view_location_id.id),
-                ('usage', '=', 'internal'),
-            ]).ids
-            if shop_internal_location_ids:
-                for grp in StockMove.read_group(
-                    domain=[
-                        ('product_id', 'in', product_ids),
-                        ('date', '>=', self.date_start),
-                        ('date', '<=', self.date_end),
-                        ('state', '=', 'done'),
-                        ('location_dest_id', 'in', shop_internal_location_ids),
-                        ('location_id', 'not in', shop_internal_location_ids),
-                    ],
-                    fields=['product_id', 'product_uom_qty:sum'],
-                    groupby=['product_id'],
-                ):
-                    stock_in_by_id[grp['product_id'][0]] = grp['product_uom_qty']
+        if shop_internal_location_ids:
+            for grp in StockMove.read_group(
+                domain=[
+                    ('product_id', 'in', product_ids),
+                    ('date', '>=', self.date_start),
+                    ('date', '<=', self.date_end),
+                    ('state', '=', 'done'),
+                    ('location_dest_id', 'in', shop_internal_location_ids),
+                    ('location_id', 'not in', shop_internal_location_ids),
+                ],
+                fields=['product_id', 'product_uom_qty:sum'],
+                groupby=['product_id'],
+            ):
+                stock_in_by_id[grp['product_id'][0]] = grp['product_uom_qty']
 
-                # scrap_qty: stock.scrap whose source is in the shop's warehouse
-                for grp in StockScrap.read_group(
-                    domain=[
-                        ('product_id', 'in', product_ids),
-                        ('date_done', '>=', self.date_start),
-                        ('date_done', '<=', self.date_end),
-                        ('state', '=', 'done'),
-                        ('location_id', 'in', shop_internal_location_ids),
-                    ],
-                    fields=['product_id', 'scrap_qty:sum'],
-                    groupby=['product_id'],
-                ):
-                    scrap_by_id[grp['product_id'][0]] = grp['scrap_qty']
+            # scrap_qty: stock.scrap whose source is in the shop's warehouse
+            for grp in StockScrap.read_group(
+                domain=[
+                    ('product_id', 'in', product_ids),
+                    ('date_done', '>=', self.date_start),
+                    ('date_done', '<=', self.date_end),
+                    ('state', '=', 'done'),
+                    ('location_id', 'in', shop_internal_location_ids),
+                ],
+                fields=['product_id', 'scrap_qty:sum'],
+                groupby=['product_id'],
+            ):
+                scrap_by_id[grp['product_id'][0]] = grp['scrap_qty']
 
         for pid, data in result.items():
             data['previous_stock'] = prev_stock_by_id.get(pid, 0)
@@ -176,6 +239,16 @@ class POSShopReportWizard(models.TransientModel):
                 + data['sales_refund_qty']
             )
             data['final_amount'] = data['sales_amount'] - data['discount_amount']
+
+        # HH-CUSTOM: drop rows where every quantity metric is zero. A row
+        # only deserves a line on the report if at least one of
+        # 前一天上傳數 / 每天進貨數 / 當天棄貨數 / 銷售數 / 銷售退貨數
+        # is non-zero.
+        result = {
+            pid: d for pid, d in result.items()
+            if d['previous_stock'] or d['stock_in'] or d['scrap_qty']
+            or d['sales_qty'] or d['sales_refund_qty']
+        }
 
         # Sort by POS category name then SKU (default_code) ascending.
         # Products without any pos_categ_ids fall to the end via 'zzz' sentinel.
