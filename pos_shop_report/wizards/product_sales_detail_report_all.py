@@ -96,8 +96,10 @@ class ProductSaleAllShopReportWizard(models.TransientModel):
 
         row += 1
         for product in order_lines.mapped('product_id'):
+            if not product.default_code:
+                continue
             col = 0
-            worksheet.write(row, col, product.default_code or '', formats['left_border'])
+            worksheet.write(row, col, product.default_code, formats['left_border'])
             worksheet.write(row, col + 1, product.display_name, formats['right_border'])
             col += 2
 

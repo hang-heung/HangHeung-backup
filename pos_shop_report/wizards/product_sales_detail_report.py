@@ -55,7 +55,9 @@ class ProductSalesDetailReport(models.TransientModel):
             raise ValidationError(_('There are no orders for this date range.'))
 
         for line in pos_lines:
-            sheet.write(row, 0, line.product_id.default_code or '', normal)
+            if not line.product_id.default_code:
+                continue
+            sheet.write(row, 0, line.product_id.default_code, normal)
             sheet.write(row, 1, line.product_id.display_name, normal)
             sheet.write(row, 2, line.qty, normal)
             sheet.write(row, 3, line.price_subtotal_incl, normal)
