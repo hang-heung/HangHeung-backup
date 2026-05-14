@@ -115,6 +115,7 @@
                                 <th>Internal Reference</th>
                                 <th>Old Item Code</th>
                                 <th>Name</th>
+                                <th>包裝規格</th>
                                 <th style="width: 130px;" class="text-end">Quantity</th>
                             </tr>
                         </thead>
@@ -128,6 +129,7 @@
                                     <td><t t-esc="p.default_code or ''"/></td>
                                     <td><t t-esc="p.old_item_number or ''"/></td>
                                     <td><t t-esc="p.name"/></td>
+                                    <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
                                     <td>
                                         <input type="number" min="0" step="any"
                                                t-attf-name="qty_{{p.id}}"
@@ -138,7 +140,7 @@
                             </t>
                             <t t-if="not products">
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         產品列表為空 / No products configured for your account.
                                     </td>
                                 </tr>
@@ -231,6 +233,7 @@
                                 <th>Internal Reference</th>
                                 <th>Old Item Code</th>
                                 <th>Name</th>
+                                <th>包裝規格</th>
                                 <th style="width: 130px;" class="text-end">Quantity</th>
                             </tr>
                         </thead>
@@ -244,6 +247,7 @@
                                     <td><t t-esc="p.default_code or ''"/></td>
                                     <td><t t-esc="p.old_item_number or ''"/></td>
                                     <td><t t-esc="p.name"/></td>
+                                    <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
                                     <td>
                                         <input type="number" min="0" step="any"
                                                t-attf-name="qty_{{p.id}}"
@@ -254,7 +258,7 @@
                             </t>
                             <t t-if="not products">
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         產品列表為空 / No products configured for your account.
                                     </td>
                                 </tr>

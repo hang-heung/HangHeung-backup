@@ -44,6 +44,7 @@ class ProductTemplate(models.Model):
     remarks = fields.Char(string='Remarks', stored=True)
     brand = fields.Char(string='Brand', stored=True)
     net_weight = fields.Char(string='Net Weight', stored=True)
+    packing_spec = fields.Char(string='包裝規格')
 
     @api.model_create_multi
     def create(self, vals_list):

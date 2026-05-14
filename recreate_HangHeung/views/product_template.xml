@@ -22,6 +22,7 @@
                     <field name="remarks"/>
                     <field name="product_tag_ids" widget="many2many_tags"/>
                     <field name="net_weight"/>
+                    <field name="packing_spec"/>
                 </xpath>
                
             </field>
