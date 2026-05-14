@@ -201,6 +201,16 @@ class DailyProductSalesInventoryReport(models.TransientModel):
         row += 1
 
         for line in report_lines:
+            # HH-CUSTOM: skip the product row when 上存 / 進貨 / 銷售 /
+            # 退貨 / 調整 are all zero -- no movement to report.
+            if not any((
+                line.get('previous_stock') or 0,
+                line.get('stock_in') or 0,
+                line.get('sales_qty') or 0,
+                line.get('sales_refund_qty') or 0,
+                line.get('adjustment_qty') or 0,
+            )):
+                continue
             sheet.write(row, 0, line.get('sku', ''), normal_format)
             sheet.write(row, 1, line.get('name', ''), normal_format)
             sheet.write(row, 2, line.get('unit', ''), normal_format)
