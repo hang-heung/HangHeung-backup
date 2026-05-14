@@ -87,10 +87,21 @@
         </xpath>
 
 
+        <!-- HH-CUSTOM: add an "Item Code" column (product.default_code) right
+             after the Product column on the pending-moves table. -->
+        <xpath expr="//table[@name='stock_move_table']//th[@name='th_sm_product']" position="after">
+            <th name="th_sm_item_code"><strong>Item Code</strong></th>
+        </xpath>
+        <xpath expr="//table[@name='stock_move_table']//tr[@t-as='move']/td[1]" position="after">
+            <td>
+                <span t-esc="move.product_id.default_code or ''"/>
+            </td>
+        </xpath>
+
         <xpath expr="//table[@name='stock_move_table']/tbody" position="after">
             <tbody>
                 <tr style="border-top: 2px solid black; font-weight: bold;">
-                    <td>Total</td>
+                    <td colspan="2">Total</td>
                     <td class="text-end">
                         <t t-esc="sum(o.move_ids.mapped('product_uom_qty'))"/>
                     </td>
@@ -129,11 +140,18 @@
             </tbody>
         </xpath>
 
+        <!-- HH-CUSTOM: add an "Item Code" column to the done-move-line table
+             header. The td cells are injected by the helper-template inherits
+             at the bottom of this file. -->
+        <xpath expr="//table[@name='stock_move_line_table']//th[@name='th_sml_product']" position="after">
+            <th name="th_sml_item_code"><strong>Item Code</strong></th>
+        </xpath>
+
         <xpath expr="//table[@name='stock_move_line_table']/tbody" position="after">
             <tbody>
                 <t t-set="has_serial_number" t-value="o.move_line_ids.mapped('lot_id')"/>
                 <tr style="border-top: 2px solid black; font-weight: bold;">
-                    <td t-att-colspan="has_serial_number and 2 or 1">Total</td>
+                    <td t-att-colspan="has_serial_number and 3 or 2">Total</td>
                     <t t-if="not has_serial_number">
                         <td class="text-center">
                             <t t-esc="sum(o.move_line_ids.mapped('qty_done'))"/>
@@ -174,7 +192,38 @@
             </tbody>
         </xpath>
 
+        <!-- HH-CUSTOM: add Item Code column to the "Remaining quantities not
+             yet delivered" backorder table that prints below the main table. -->
+        <xpath expr="//table[@name='stock_backorder_table']//th[@name='th_sb_product']" position="after">
+            <th name="th_sb_item_code"><strong>Item Code</strong></th>
+        </xpath>
+        <xpath expr="//table[@name='stock_backorder_table']//tr[@t-as='bo_line']/td[1]" position="after">
+            <td>
+                <span t-esc="bo_line.product_id.default_code or ''"/>
+            </td>
+        </xpath>
 
+    </template>
+
+    <!-- HH-CUSTOM: helper-template inherits to add the Item Code cell to the
+         done-state delivery slip rows. These templates are called by
+         stock.report_delivery_document for state='done' pickings. -->
+    <template id="hh_stock_report_delivery_aggregated_move_lines"
+              inherit_id="stock.stock_report_delivery_aggregated_move_lines">
+        <xpath expr="//td[1]" position="after">
+            <td>
+                <span t-esc="aggregated_lines[line]['product'].default_code or ''"/>
+            </td>
+        </xpath>
+    </template>
+
+    <template id="hh_stock_report_delivery_has_serial_move_line"
+              inherit_id="stock.stock_report_delivery_has_serial_move_line">
+        <xpath expr="//td[1]" position="after">
+            <td>
+                <span t-esc="move_line.product_id.default_code or ''"/>
+            </td>
+        </xpath>
     </template>
 
 </odoo>
