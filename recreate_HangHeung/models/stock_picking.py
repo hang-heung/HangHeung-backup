@@ -224,8 +224,12 @@ class StockPicking(models.Model):
         so = self.env['sale.order'].sudo().search([('name', '=', self.origin)], limit=1)
         if not so or not so.is_wedding_order:
             return self.env['stock.picking']
-        # Walk move_orig chain to the upstream Hoymay incoming.
-        candidates = self.move_ids.move_orig_ids.picking_id.filtered(
+        # SUDO walk: the sibling Hoymay incoming is intentionally hidden
+        # from POS users via the wedding-incoming-hidden record rule, so
+        # accessing it through a regular browse triggers an AccessError on
+        # stock.picking. The caller (button_validate) auto-validates the
+        # sibling on the user's behalf, so look past the rule here.
+        candidates = self.sudo().move_ids.move_orig_ids.picking_id.filtered(
             lambda p: p.company_id.id == 1
             and p.picking_type_id.code == 'incoming'
             and p.state not in ('done', 'cancel')
