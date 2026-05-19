@@ -11,3 +11,4 @@ from . import coupon_summary_excel_wizard
 from . import multiple_loyalty_assign_store_wizard
 from . import generate_coupon_wizard
 from . import security_code_import
+from . import reverse_allocation_wizard

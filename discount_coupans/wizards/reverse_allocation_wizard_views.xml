@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_loyalty_reverse_allocation_wizard_form" model="ir.ui.view">
+        <field name="name">loyalty.reverse.allocation.wizard.form</field>
+        <field name="model">loyalty.reverse.allocation.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Reverse Coupon Allocation (Bulk)">
+                <sheet>
+                    <div class="alert alert-info" role="alert" invisible="summary">
+                        This will clear <strong>allocated_store_id</strong> and
+                        <strong>allocated_date</strong> on the selected coupons and
+                        zero out their on-hand stock at the store warehouse.
+                        Only coupons in <em>Not Activated</em> status are touched
+                        unless you tick <strong>Force</strong>.
+                    </div>
+                    <group invisible="summary">
+                        <field name="coupon_ids" widget="many2many_tags" options="{'no_create': True}"/>
+                        <field name="force"/>
+                    </group>
+                    <group invisible="not summary">
+                        <field name="summary" nolabel="1" readonly="1"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_reverse" type="object" string="Reverse Allocation"
+                            class="btn-primary" invisible="summary"/>
+                    <button string="Close" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_loyalty_reverse_allocation_wizard" model="ir.actions.act_window">
+        <field name="name">Reverse Allocation</field>
+        <field name="res_model">loyalty.reverse.allocation.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_loyalty_reverse_allocation_wizard_form"/>
+        <field name="binding_model_id" ref="loyalty.model_loyalty_card"/>
+        <field name="binding_view_types">list</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

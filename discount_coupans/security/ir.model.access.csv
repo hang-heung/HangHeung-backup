@@ -11,3 +11,4 @@ access_loyalty_assign_store_wizard_range,loyalty.assign.store.wizard.range,model
 access_loyalty_assign_store_range_line,loyalty.assign.store.range.line,model_loyalty_assign_store_range_line,base.group_user,1,1,1,1
 access_generate_coupon_wizard,generate.coupon.wizard,model_generate_coupon_wizard,base.group_user,1,1,1,1
 access_loyalty_security_code_import_wizard,loyalty.security.code.import.wizard,model_loyalty_security_code_import_wizard,base.group_user,1,1,1,1
+access_loyalty_reverse_allocation_wizard,loyalty.reverse.allocation.wizard,model_loyalty_reverse_allocation_wizard,base.group_user,1,1,1,1
