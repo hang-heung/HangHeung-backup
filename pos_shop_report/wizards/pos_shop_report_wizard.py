@@ -242,7 +242,7 @@ class POSShopReportWizard(models.TransientModel):
 
         # HH-CUSTOM: drop rows where every quantity metric is zero. A row
         # only deserves a line on the report if at least one of
-        # 前一天上傳數 / 時段進貨數總和 / 當天棄貨數 / 銷售數 / 銷售退貨數
+        # 前一天上傳數 / 進貨數總和 / 當天棄貨數 / 銷售數 / 銷售退貨數
         # is non-zero.
         result = {
             pid: d for pid, d in result.items()
