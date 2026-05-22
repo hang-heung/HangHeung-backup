@@ -1,5 +1,5 @@
-from datetime import timedelta
-
+from datetime import datetime, time
+import pytz
 from odoo import models, fields
 import base64
 import io
@@ -21,13 +21,15 @@ class CouponUsedExcelWizard(models.TransientModel):
             ('program_id.program_type', '=', 'coupons')
         ]
 
+        # FIX: use redeemed_datetime (set at actual redemption) instead of
+        # write_date which changes on any field update and gives wrong results.
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
         if self.from_date:
-            domain.append(('write_date', '>=', self.from_date))
+            start_utc = tz.localize(datetime.combine(self.from_date, time.min)).astimezone(pytz.UTC)
+            domain.append(('redeemed_datetime', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')))
         if self.to_date:
-            # write_date is a Datetime; '<= to_date' (Date cast to
-            # midnight) drops every redemption later that same day. Use
-            # exclusive next-day upper bound.
-            domain.append(('write_date', '<', self.to_date + timedelta(days=1)))
+            end_utc = tz.localize(datetime.combine(self.to_date, time.max)).astimezone(pytz.UTC)
+            domain.append(('redeemed_datetime', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')))
 
         coupons = self.env['loyalty.card'].search(domain)
 
@@ -74,7 +76,7 @@ class CouponUsedExcelWizard(models.TransientModel):
 
         self.write({
             'file_data': base64.b64encode(excel_data),
-            'file_name': 'Used_Coupons.xlsx',
+            'file_name': f"禮券兌換報告 (按舖) {self.from_date.strftime('%Y-%m-%d') if self.from_date else 'all'} 至 {self.to_date.strftime('%Y-%m-%d') if self.to_date else 'all'}.xlsx",
         })
 
         return {

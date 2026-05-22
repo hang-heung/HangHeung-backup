@@ -15,7 +15,7 @@ class CouponGiftVoucherExcelWizard(models.TransientModel):
     file_data = fields.Binary('Excel File', readonly=True)
     file_name = fields.Char('File Name', readonly=True)
 
-    @api.onchange('date_end')
+    @api.constrains('date_start', 'date_end')
     def _check_date_range(self):
         for record in self:
             if record.date_start and record.date_end and record.date_end < record.date_start:
@@ -47,7 +47,6 @@ class CouponGiftVoucherExcelWizard(models.TransientModel):
             ('id', 'not in', redeemed_coupons_records.ids),
             ('history_ids.order_id', '=', False),
         ])
-        sold_coupons_records.browse(292)
 
         pos_coupons_records = redeemed_coupons_records | sold_coupons_records
         if not pos_coupons_records:
@@ -201,7 +200,7 @@ class CouponGiftVoucherExcelWizard(models.TransientModel):
 
         self.write({
             'file_data': base64.b64encode(excel_data),
-            'file_name': 'Coupon Gift Voucher Report.xlsx',
+            'file_name': f"禮券銷售及兌換報表 {self.date_start.strftime('%Y-%m-%d')} 至 {self.date_end.strftime('%Y-%m-%d')}.xlsx",
         })
 
         return {

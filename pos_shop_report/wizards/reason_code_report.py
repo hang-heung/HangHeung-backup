@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api
-from datetime import datetime
+from datetime import datetime, time
+import pytz
 from io import BytesIO
 import base64
 import xlsxwriter
@@ -17,10 +18,13 @@ class ReceiptReasonReportWizard(models.TransientModel):
     )
 
     def action_generate_report(self):
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_utc = tz.localize(datetime.combine(self.start_date, time.min)).astimezone(pytz.UTC)
+        end_utc = tz.localize(datetime.combine(self.end_date, time.max)).astimezone(pytz.UTC)
         domain = [
             ('picking_type_code', 'in', ['incoming', 'internal', 'outgoing']),
-            ('scheduled_date', '>=', self.start_date),
-            ('scheduled_date', '<=', self.end_date),
+            ('scheduled_date', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('scheduled_date', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')),
         ]
         if self.reason_code_ids:
             domain.append(('reason_code', 'in', self.reason_code_ids.ids))
@@ -67,13 +71,12 @@ class ReceiptReasonReportWizard(models.TransientModel):
             for line in picking.move_line_ids:
 
                 move = line.move_id
-                if move.product_uom_qty == line.qty_done:
-                    continue
                 sheet.write(row, 0, picking.name or "")
                 sheet.write(row, 1, str(picking.scheduled_date.date()) if picking.scheduled_date else "")
                 sheet.write(row, 2, picking.partner_id.name or "")
                 sheet.write(row, 3, picking.origin or "")
-                sheet.write(row, 4, f'{picking.reason_code.code}{picking.reason_code.remark}' or "")
+                rc = picking.reason_code
+                sheet.write(row, 4, f'{rc.code} {rc.remark}' if rc else '')
                 sheet.write(row, 5, line.product_id.display_name)
                 sheet.write(row, 6, move.product_uom_qty)
                 sheet.write(row, 7, line.qty_done)

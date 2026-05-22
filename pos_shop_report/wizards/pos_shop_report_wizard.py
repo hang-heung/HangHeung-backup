@@ -1,5 +1,5 @@
 from collections import defaultdict
-from odoo import models, fields,api
+from odoo import models, fields, api
 from datetime import time, timedelta, datetime
 from odoo.exceptions import ValidationError
 import pytz
@@ -18,7 +18,6 @@ class POSShopReportWizard(models.TransientModel):
     payment_breakdown = fields.Json(string='Payment Breakdown', readonly=True)
     coupon_discount_total = fields.Float(string="Deducted Coupon", readonly=True)
     company_name = fields.Char(string="Company", compute="_compute_company_name")
-
     shop_address = fields.Char(string="Shop Address", compute="_compute_shop_contact")
     shop_phone = fields.Char(string="Shop Phone", compute="_compute_shop_contact")
 
@@ -29,14 +28,12 @@ class POSShopReportWizard(models.TransientModel):
             if warehouse and warehouse.partner_id:
                 partner = warehouse.partner_id
                 address_parts = [
-                    partner.street or '',
-                    partner.street2 or '',
-                    partner.city or '',
+                    partner.street or '', partner.street2 or '', partner.city or '',
                     partner.state_id.name if partner.state_id else '',
                     partner.zip or '',
-                    partner.country_id.name if partner.country_id else ''
+                    partner.country_id.name if partner.country_id else '',
                 ]
-                wizard.shop_address = ', '.join([part for part in address_parts if part])
+                wizard.shop_address = ', '.join(p for p in address_parts if p)
                 wizard.shop_phone = partner.phone or ''
             else:
                 wizard.shop_address = ''
@@ -47,11 +44,24 @@ class POSShopReportWizard(models.TransientModel):
         for wizard in self:
             wizard.company_name = wizard.shop_id.company_id.name if wizard.shop_id.company_id else self.env.company.name
 
-    @api.onchange('date_end')
+    @api.constrains('date_start', 'date_end')
     def _check_date_range(self):
         for record in self:
             if record.date_start and record.date_end and record.date_end < record.date_start:
                 raise ValidationError("End Date cannot be earlier than Start Date.")
+
+    def _get_utc_bounds(self):
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_utc = tz.localize(datetime.combine(self.date_start, time.min)).astimezone(pytz.UTC)
+        end_utc = tz.localize(datetime.combine(self.date_end, time.max)).astimezone(pytz.UTC)
+        prev_end_utc = tz.localize(
+            datetime.combine(self.date_start - timedelta(days=1), time.max)
+        ).astimezone(pytz.UTC)
+        return (
+            start_utc.strftime('%Y-%m-%d %H:%M:%S'),
+            end_utc.strftime('%Y-%m-%d %H:%M:%S'),
+            prev_end_utc.strftime('%Y-%m-%d %H:%M:%S'),
+        )
 
     def generate_report(self):
         self.ensure_one()
@@ -63,7 +73,6 @@ class POSShopReportWizard(models.TransientModel):
 
     def _compute_report_lines(self):
         self.ensure_one()
-        PosLine = self.env['pos.order.line']
         StockMove = self.env['stock.move']
         StockScrap = self.env['stock.scrap']
         StockQuant = self.env['stock.quant']
@@ -73,8 +82,6 @@ class POSShopReportWizard(models.TransientModel):
             warehouse = self.env['stock.warehouse'].search(
                 [('name', '=', self.shop_id.name)], limit=1)
 
-        # Compute the shop's internal locations early so both the
-        # POS-driven and stock-driven candidate sets can use them.
         shop_internal_location_ids = []
         if warehouse and warehouse.view_location_id:
             shop_internal_location_ids = self.env['stock.location'].search([
@@ -82,10 +89,12 @@ class POSShopReportWizard(models.TransientModel):
                 ('usage', '=', 'internal'),
             ]).ids
 
-        lines = PosLine.search([
+        start_utc, end_utc, prev_end_utc = self._get_utc_bounds()
+
+        lines = self.env['pos.order.line'].search([
             ('order_id.config_id', '=', self.shop_id.id),
-            ('order_id.date_order', '>=', self.date_start),
-            ('order_id.date_order', '<=', self.date_end),
+            ('order_id.date_order', '>=', start_utc),
+            ('order_id.date_order', '<=', end_utc),
         ])
 
         result = {}
@@ -110,60 +119,41 @@ class POSShopReportWizard(models.TransientModel):
                     'discount_amount': 0,
                     'final_amount': 0,
                 }
-
             res = result[key]
             qty = line.qty
             price = line.price_unit
             discount = (price * qty) * (line.discount / 100)
-
             if qty > 0:
                 res['sales_qty'] += qty
             else:
                 res['sales_refund_qty'] += abs(qty)
-
             res['sales_amount'] += qty * price
             res['discount_amount'] += abs(discount)
 
-        prev_date = self.date_start - timedelta(days=1)
-
-        # HH-CUSTOM: also include any product touched by the shop in the
-        # period via stock_in / scrap / current quants, so the report
-        # shows every item where ANY of {previous_stock, stock_in,
-        # scrap_qty, sales_qty, sales_refund_qty} ends up non-zero.
-        # An empty stub row is created for each candidate; metrics get
-        # filled in below; rows still all-zero are dropped at the end.
         if shop_internal_location_ids:
             extra_pids = set()
             for grp in StockQuant.read_group(
-                domain=[
-                    ('location_id', 'in', shop_internal_location_ids),
-                    ('quantity', '!=', 0),
-                ],
-                fields=['product_id'],
-                groupby=['product_id'],
+                domain=[('location_id', 'in', shop_internal_location_ids), ('quantity', '!=', 0)],
+                fields=['product_id'], groupby=['product_id'],
             ):
                 extra_pids.add(grp['product_id'][0])
             for grp in StockMove.read_group(
                 domain=[
-                    ('date', '>=', self.date_start),
-                    ('date', '<=', self.date_end),
+                    ('date', '>=', start_utc), ('date', '<=', end_utc),
                     ('state', '=', 'done'),
                     ('location_dest_id', 'in', shop_internal_location_ids),
                     ('location_id', 'not in', shop_internal_location_ids),
                 ],
-                fields=['product_id'],
-                groupby=['product_id'],
+                fields=['product_id'], groupby=['product_id'],
             ):
                 extra_pids.add(grp['product_id'][0])
             for grp in StockScrap.read_group(
                 domain=[
-                    ('date_done', '>=', self.date_start),
-                    ('date_done', '<=', self.date_end),
+                    ('date_done', '>=', start_utc), ('date_done', '<=', end_utc),
                     ('state', '=', 'done'),
                     ('location_id', 'in', shop_internal_location_ids),
                 ],
-                fields=['product_id'],
-                groupby=['product_id'],
+                fields=['product_id'], groupby=['product_id'],
             ):
                 extra_pids.add(grp['product_id'][0])
             extra_pids -= set(result.keys())
@@ -187,23 +177,45 @@ class POSShopReportWizard(models.TransientModel):
             raise ValidationError("No record Found.")
 
         product_ids = list(result.keys())
-        products = self.env['product.product'].browse(product_ids)
 
-        # previous_stock: qty on hand at end of day before date_start, scoped to the shop's warehouse
-        prev_stock_by_id = {pid: 0 for pid in product_ids}
-        if warehouse:
-            for p in products.with_context(to_date=prev_date, warehouse_id=warehouse.id):
-                prev_stock_by_id[p.id] = p.qty_available
+        # FIX: compute previous_stock directly from stock.move scoped to THIS shop's
+        # warehouse locations. Using qty_available with to_date ignores the warehouse
+        # context in Odoo 18 and returns company-wide stock instead.
+        prev_in = defaultdict(float)
+        prev_out = defaultdict(float)
+        if shop_internal_location_ids:
+            for grp in StockMove.read_group(
+                domain=[
+                    ('product_id', 'in', product_ids),
+                    ('state', '=', 'done'),
+                    ('date', '<=', prev_end_utc),
+                    ('location_dest_id', 'in', shop_internal_location_ids),
+                ],
+                fields=['product_id', 'product_uom_qty:sum'],
+                groupby=['product_id'],
+            ):
+                prev_in[grp['product_id'][0]] += grp['product_uom_qty']
+            for grp in StockMove.read_group(
+                domain=[
+                    ('product_id', 'in', product_ids),
+                    ('state', '=', 'done'),
+                    ('date', '<=', prev_end_utc),
+                    ('location_id', 'in', shop_internal_location_ids),
+                ],
+                fields=['product_id', 'product_uom_qty:sum'],
+                groupby=['product_id'],
+            ):
+                prev_out[grp['product_id'][0]] += grp['product_uom_qty']
 
-        # stock_in: stock.move arriving INTO the shop's warehouse from outside the shop
+        prev_stock_by_id = {pid: prev_in[pid] - prev_out[pid] for pid in product_ids}
+
         stock_in_by_id = defaultdict(float)
         scrap_by_id = defaultdict(float)
         if shop_internal_location_ids:
             for grp in StockMove.read_group(
                 domain=[
                     ('product_id', 'in', product_ids),
-                    ('date', '>=', self.date_start),
-                    ('date', '<=', self.date_end),
+                    ('date', '>=', start_utc), ('date', '<=', end_utc),
                     ('state', '=', 'done'),
                     ('location_dest_id', 'in', shop_internal_location_ids),
                     ('location_id', 'not in', shop_internal_location_ids),
@@ -212,13 +224,10 @@ class POSShopReportWizard(models.TransientModel):
                 groupby=['product_id'],
             ):
                 stock_in_by_id[grp['product_id'][0]] = grp['product_uom_qty']
-
-            # scrap_qty: stock.scrap whose source is in the shop's warehouse
             for grp in StockScrap.read_group(
                 domain=[
                     ('product_id', 'in', product_ids),
-                    ('date_done', '>=', self.date_start),
-                    ('date_done', '<=', self.date_end),
+                    ('date_done', '>=', start_utc), ('date_done', '<=', end_utc),
                     ('state', '=', 'done'),
                     ('location_id', 'in', shop_internal_location_ids),
                 ],
@@ -232,26 +241,18 @@ class POSShopReportWizard(models.TransientModel):
             data['stock_in'] = stock_in_by_id.get(pid, 0)
             data['scrap_qty'] = scrap_by_id.get(pid, 0)
             data['total_qty_today'] = (
-                data['previous_stock']
-                + data['stock_in']
-                - data['scrap_qty']
-                - data['sales_qty']
-                + data['sales_refund_qty']
+                data['previous_stock'] + data['stock_in']
+                - data['scrap_qty'] - data['sales_qty'] + data['sales_refund_qty']
             )
             data['final_amount'] = data['sales_amount'] - data['discount_amount']
 
-        # HH-CUSTOM: drop rows where every quantity metric is zero. A row
-        # only deserves a line on the report if at least one of
-        # 前一天上傳數 / 進貨數總和 / 當天棄貨數 / 銷售數 / 銷售退貨數
-        # is non-zero.
         result = {
             pid: d for pid, d in result.items()
             if d['previous_stock'] or d['stock_in'] or d['scrap_qty']
             or d['sales_qty'] or d['sales_refund_qty']
         }
 
-        # Sort by POS category name then SKU (default_code) ascending.
-        # Products without any pos_categ_ids fall to the end via 'zzz' sentinel.
+        products = self.env['product.product'].browse(list(result.keys()))
         cat_by_pid = {}
         for prod in products:
             cat_names = prod.product_tmpl_id.pos_categ_ids.mapped('name')
@@ -265,15 +266,7 @@ class POSShopReportWizard(models.TransientModel):
 
     def _compute_coupon_lines(self):
         self.ensure_one()
-        LoyaltyCard = self.env['loyalty.card']
-        PosLine = self.env['pos.order.line']
-
-        user_tz = self.env.user.tz or 'UTC'
-        tz = pytz.timezone(user_tz)
-        start_local = tz.localize(datetime.combine(self.date_start, time.min))
-        end_local = tz.localize(datetime.combine(self.date_end, time.max))
-        start_utc = start_local.astimezone(pytz.UTC)
-        end_utc = end_local.astimezone(pytz.UTC)
+        start_utc, end_utc, _ = self._get_utc_bounds()
 
         coupon_products = self.env['product.product'].search([
             ('product_tmpl_id.is_coupon', '=', True),
@@ -284,13 +277,13 @@ class POSShopReportWizard(models.TransientModel):
         for product in coupon_products:
             program = product.product_tmpl_id.loyalty_program_id
 
-            allocated_not_activated = LoyaltyCard.search_count([
+            allocated_not_activated = self.env['loyalty.card'].search_count([
                 ('program_id', '=', program.id),
                 ('store_id', '=', self.shop_id.id),
                 ('status', '=', 'not_activated'),
             ])
 
-            redeemed_lines = PosLine.search([
+            redeemed_lines = self.env['pos.order.line'].search([
                 ('order_id.config_id', '=', self.shop_id.id),
                 ('order_id.date_order', '>=', start_utc),
                 ('order_id.date_order', '<=', end_utc),
@@ -315,27 +308,16 @@ class POSShopReportWizard(models.TransientModel):
 
         coupon_lines.sort(key=lambda d: (d['program_name'], d['sku']))
         return coupon_lines
-    
 
     def _compute_payment_breakdown(self):
-        Payment = self.env['pos.payment']
-        user_tz = self.env.user.tz or 'UTC'
-        tz = pytz.timezone(user_tz)
-
-        start_local = tz.localize(datetime.combine(self.date_start, time.min))
-        end_local = tz.localize(datetime.combine(self.date_end, time.max))
-
-        start_utc = start_local.astimezone(pytz.UTC)
-        end_utc = end_local.astimezone(pytz.UTC)
-
+        start_utc, end_utc, _ = self._get_utc_bounds()
         orders = self.env['pos.order'].search([
             ('config_id', '=', self.shop_id.id),
             ('date_order', '>=', start_utc),
             ('date_order', '<=', end_utc),
             ('state', 'in', ['paid', 'done', 'invoiced']),
         ])
-        payments = Payment.search([('pos_order_id', 'in', orders.ids)])
-        
+        payments = self.env['pos.payment'].search([('pos_order_id', 'in', orders.ids)])
         breakdown = {}
         for payment in payments:
             name = payment.payment_method_id.name
@@ -343,13 +325,11 @@ class POSShopReportWizard(models.TransientModel):
         return breakdown
 
     def _compute_coupon_discount(self):
-        PosLine = self.env['pos.order.line']
-        lines = PosLine.search([
+        start_utc, end_utc, _ = self._get_utc_bounds()
+        lines = self.env['pos.order.line'].search([
             ('order_id.config_id', '=', self.shop_id.id),
-            ('order_id.date_order', '>=', self.date_start),
-            ('order_id.date_order', '<=', self.date_end),
+            ('order_id.date_order', '>=', start_utc),
+            ('order_id.date_order', '<=', end_utc),
         ])
         discounted_lines = lines.filtered(lambda l: l.price_subtotal_incl < 0 and l.qty >= 0)
-
         return abs(sum(discounted_lines.mapped('price_subtotal_incl')))
-

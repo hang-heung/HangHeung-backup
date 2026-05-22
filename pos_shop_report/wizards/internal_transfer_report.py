@@ -1,8 +1,8 @@
-from odoo import models, fields,api
+from odoo import models, fields, api
 import xlsxwriter
 import base64
 from io import BytesIO
-from datetime import datetime
+from datetime import datetime, time
 import pytz
 
 
@@ -15,10 +15,14 @@ class InternalTransferReportWizard(models.TransientModel):
 
     def action_export_xlsx(self):
         self.ensure_one()
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_utc = tz.localize(datetime.combine(self.date_from, time.min)).astimezone(pytz.UTC)
+        end_utc = tz.localize(datetime.combine(self.date_to, time.max)).astimezone(pytz.UTC)
         transfers = self.env['stock.picking'].search([
             ('picking_type_code', '=', 'internal'),
-            ('scheduled_date', '>=', self.date_from),
-            ('scheduled_date', '<=', self.date_to)
+            ('scheduled_date', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('scheduled_date', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('state', 'not in', ['draft', 'cancel']),
         ])
 
         output = BytesIO()
@@ -56,7 +60,7 @@ class InternalTransferReportWizard(models.TransientModel):
                 sheet.write(row, 3, move.product_id.default_code or '', normal)
                 sheet.write(row, 4, move.product_id.name or '', normal)
                 sheet.write(row, 5, move.product_uom.name or '', normal)
-                sheet.write(row, 6, move.quantity or 0, normal)
+                sheet.write(row, 6, move.product_uom_qty or 0, normal)
                 sheet.write(row, 7, getattr(transfer, 'reason_code', False) and f'{transfer.reason_code.code}{transfer.reason_code.remark}' or '', normal)
                 sheet.write(row, 8, transfer.location_dest_id.display_name or '', normal)
                 row += 1

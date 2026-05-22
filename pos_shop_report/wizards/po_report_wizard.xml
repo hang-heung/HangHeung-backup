@@ -7,7 +7,7 @@
                 <group>
                     <field name="date_from"/>
 		    <field name="date_to"/>
-		    <field name="company_selector"/>
+		    <field name="company_id"/>
                 </group>
                 <footer>
                     <button name="action_export_xlsx" type="object" string="Export XLSX" class="btn-secondary"/>

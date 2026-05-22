@@ -2,7 +2,8 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 from io import BytesIO
 import base64
-from datetime import datetime
+from datetime import datetime, time
+import pytz
 import xlsxwriter
 
 class ScrapReportWizard(models.TransientModel):
@@ -28,12 +29,14 @@ class ScrapReportWizard(models.TransientModel):
             ('location_id', 'child_of', view_location_ids)
         ])
 
-        scrap_location_names = scrap_locations.mapped('complete_name')
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_utc = tz.localize(datetime.combine(self.date_from, time.min)).astimezone(pytz.UTC)
+        end_utc = tz.localize(datetime.combine(self.date_to, time.max)).astimezone(pytz.UTC)
         scraps = self.env['stock.scrap'].search([
-            ('location_id.complete_name', 'in', scrap_location_names),
-            ('date_done', '>=', self.date_from),
-            ('date_done', '<=', self.date_to),
-            ('state', '=', 'done')
+            ('location_id', 'in', scrap_locations.ids),
+            ('date_done', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('date_done', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('state', '=', 'done'),
         ])
 
         output = BytesIO()
@@ -59,11 +62,18 @@ class ScrapReportWizard(models.TransientModel):
         sheet.set_column(6, 6, 20)
         sheet.set_column(7, 7, 25)
 
+        # Build location_id → warehouse map once — avoids N+1 queries (BUG-11)
+        loc_to_warehouse = {}
+        for wh in self.shop_ids:
+            child_loc_ids = self.env['stock.location'].search([
+                ('id', 'child_of', wh.view_location_id.id)
+            ]).ids
+            for loc_id in child_loc_ids:
+                loc_to_warehouse[loc_id] = wh
+
         row = 1
         for scrap in scraps:
-            warehouse = self.env['stock.warehouse'].search([
-                ('view_location_id', 'parent_of', scrap.location_id.id)
-            ], limit=1)
+            warehouse = loc_to_warehouse.get(scrap.location_id.id)
 
             reason = ', '.join(scrap.scrap_reason_tag_ids.mapped('name')) if scrap.scrap_reason_tag_ids else ''
 

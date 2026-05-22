@@ -114,7 +114,7 @@
                     <field name="to_date"/>
                     <field name="program_ids" widget="many2many_tags"/>
                     <field name="activated_shop_ids" widget="many2many_tags"/>
-                    <field name="sold_shop_ids" widget="many2many_tags"/>
+                    <field name="sold_shop_ids" widget="many2many_tags" string="Redeemed Shops"/>
                 </group>
 
                 <footer>

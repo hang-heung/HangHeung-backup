@@ -2,6 +2,8 @@ from odoo import models, fields, api, _
 import base64
 import io
 import xlsxwriter
+import pytz
+from datetime import datetime, time
 from odoo.exceptions import ValidationError
 
 class CouponSummaryExcelWizard(models.TransientModel):
@@ -24,19 +26,27 @@ class CouponSummaryExcelWizard(models.TransientModel):
         'coupon_summary_sold_shop_rel',
         'wizard_id',
         'shop_id',
-        string="Sold To Shops"
+        string="Redeemed Shops"
     )
     file_data = fields.Binary('Excel File', readonly=True)
     file_name = fields.Char('File Name', readonly=True)
 
     def action_generate_report_excel(self):
-        domain = []
+        # FIX 1: date filter uses date_activation (when coupon was distributed to a shop),
+        # not create_date (when the batch record was bulk-generated — often months prior).
+        # FIX 2: shop filter uses OR across allocated_store_id and redeem_shop_id so
+        # selecting a shop returns coupons where EITHER field matches (not both required).
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        domain = [('program_id', 'in', self.program_ids.ids)] if self.program_ids else []
+
         if self.from_date:
-            domain.append(('create_date', '>=', self.from_date))
+            start_utc = tz.localize(datetime.combine(self.from_date, time.min)).astimezone(pytz.UTC)
+            domain.append(('date_activation', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')))
         if self.to_date:
-            domain.append(('create_date', '<=', self.to_date))
-        if self.program_ids:
-            domain.append(('program_id', 'in', self.program_ids.ids))
+            end_utc = tz.localize(datetime.combine(self.to_date, time.max)).astimezone(pytz.UTC)
+            domain.append(('date_activation', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')))
+
+        # Each shop filter applies only to its own field (independent AND conditions)
         if self.activated_shop_ids:
             domain.append(('allocated_store_id', 'in', self.activated_shop_ids.ids))
         if self.sold_shop_ids:
@@ -81,7 +91,7 @@ class CouponSummaryExcelWizard(models.TransientModel):
 
         self.write({
             'file_data': base64.b64encode(output.read()),
-            'file_name': 'Coupon_consolidate_Report.xlsx'
+            'file_name': f"禮券生效及兌換報表 {self.from_date.strftime('%Y-%m-%d')} 至 {self.to_date.strftime('%Y-%m-%d')}.xlsx"
         })
 
         return {

@@ -33,6 +33,7 @@
         "reports/pos_shop_report_format.xml",
         "reports/sales_report_pdf.xml",
         "reports/sales_report_all_shops_pdf.xml",
+        "reports/daily_product_sales_inventory_report_pdf.xml",
     ],
 
     'installable': True,

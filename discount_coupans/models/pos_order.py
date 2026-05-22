@@ -26,6 +26,7 @@ class PosOrder(models.Model):
                 coupon.write({
                     'status': 'redeemed',
                     'redeemed_datetime': fields.Datetime.now(),
+                    'redeem_shop_id': self.config_id.id,
                 })
 
         return result

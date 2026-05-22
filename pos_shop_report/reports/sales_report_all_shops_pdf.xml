@@ -8,12 +8,12 @@
         <field name="page_width">0</field>
         <field name="page_height">0</field>
         <field name="orientation">Landscape</field>
-        <field name="margin_top">10</field>
+        <field name="margin_top">20</field>
         <field name="margin_bottom">10</field>
         <field name="margin_left">8</field>
         <field name="margin_right">8</field>
         <field name="header_line" eval="False"/>
-        <field name="header_spacing">0</field>
+        <field name="header_spacing">8</field>
         <field name="dpi">90</field>
     </record>
 
@@ -27,84 +27,45 @@
     </record>
 
     <template id="report_sales_report_all_shops_pdf_template">
-        <t t-call="web.basic_layout">
-            <main class="page" style="font-family: sans-serif; font-size: 7pt;">
-                <t t-set="d" t-value="docs._aggregate_all_shops_data()"/>
-                <t t-set="shops" t-value="d.get('shops') or []"/>
+        <t t-call="web.html_container">
 
-                <h3 style="text-align: center; margin: 0 0 4px 0; font-size: 12pt;">Sales Report - All Shops</h3>
-                <p style="text-align: center; margin: 0 0 10px 0; font-size: 9pt;">
-                    日期:&#160;<t t-esc="d.get('start_date') or ''"/>&#160;~&#160;<t t-esc="d.get('end_date') or ''"/>
-                </p>
-
-                <style>
-                    table.aas { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 8px; font-size: 7pt; }
-                    table.aas th, table.aas td { border: 0.5pt solid #888; padding: 2px 3px; word-wrap: break-word; overflow: hidden; }
-                    table.aas thead th { background: #D9E1F2; text-align: center; font-weight: bold; }
-                    table.aas td.label { background: #F8F8F8; font-weight: bold; text-align: left; }
-                    table.aas td.num { text-align: right; }
-                    table.aas tr.total td { background: #FFF2CC; font-weight: bold; }
-                    table.aas td.subtotal { background: #FFF2CC; font-weight: bold; text-align: right; }
-                    table.aas col.lbl { width: 18%; }
-                    table.aas col.sub { width: 9%; }
-                    h4.section { margin: 6px 0 3px 0; font-size: 9pt; background: #BDD7EE; padding: 2px 6px; }
-                </style>
-
-                <!-- Header summary -->
-                <h4 class="section">Header Summary</h4>
-                <table class="aas">
-                    <colgroup>
-                        <col class="lbl"/>
-                        <t t-foreach="shops" t-as="s"><col/></t>
-                        <col class="sub"/>
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th>Metric</th>
-                            <t t-foreach="shops" t-as="s"><th><t t-esc="s['name']"/></th></t>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <t t-foreach="d.get('header_metrics') or []" t-as="m">
-                            <tr>
-                                <td class="label"><t t-esc="m['label']"/></td>
-                                <t t-foreach="m['cells']" t-as="v">
-                                    <td class="num">
-                                        <t t-if="m.get('is_money')"><t t-esc="'%.2f' % (v or 0.0)"/></t>
-                                        <t t-else=""><t t-esc="int(v or 0)"/></t>
-                                    </td>
-                                </t>
-                                <td class="subtotal">
-                                    <t t-if="m.get('is_money')"><t t-esc="'%.2f' % (m['subtotal'] or 0.0)"/></t>
-                                    <t t-else=""><t t-esc="int(m['subtotal'] or 0)"/></t>
-                                </td>
-                            </tr>
-                        </t>
-                    </tbody>
+            <!-- Page header: shown on every page by wkhtmltopdf -->
+            <div class="header" style="width:100%; font-family:sans-serif; font-size:8pt; padding:2px 10px; box-sizing:border-box;">
+                <table style="width:100%; border:none; border-collapse:collapse;">
+                    <tr>
+                        <td style="border:none; padding:0; text-align:left; font-weight:bold;">日結報表 - 全線</td>
+                        <td style="border:none; padding:0; text-align:right;">
+                            第 <span class="page"/> / <span class="topage"/> 頁
+                        </td>
+                    </tr>
                 </table>
+            </div>
 
-                <!-- Section renderer macro -->
-                <t t-set="sections" t-value="[
-                    ('支付方式 - Amount', d.get('payment', {}).get('amount_rows') or [], d.get('payment', {}).get('amount_col_totals') or [], d.get('payment', {}).get('amount_grand') or 0.0, '支付方式', True),
-                    ('支付方式 - Transactions', d.get('payment', {}).get('qty_rows') or [], d.get('payment', {}).get('qty_col_totals') or [], d.get('payment', {}).get('qty_grand') or 0, '支付方式', False),
-                    ('Void單 - Amount', d.get('void', {}).get('amount_rows') or [], d.get('void', {}).get('amount_col_totals') or [], d.get('void', {}).get('amount_grand') or 0.0, 'Payment Method', True),
-                    ('Void單 - Quantity', d.get('void', {}).get('qty_rows') or [], d.get('void', {}).get('qty_col_totals') or [], d.get('void', {}).get('qty_grand') or 0.0, 'Payment Method', True),
-                    ('咭類兌換 - Amount Redeemed', d.get('coupon', {}).get('amount_rows') or [], d.get('coupon', {}).get('amount_col_totals') or [], d.get('coupon', {}).get('amount_grand') or 0.0, 'Coupon', True),
-                    ('咭類兌換 - Quantity Redeemed', d.get('coupon', {}).get('qty_rows') or [], d.get('coupon', {}).get('qty_col_totals') or [], d.get('coupon', {}).get('qty_grand') or 0, 'Coupon', False),
-                    ('Discount - Amount', d.get('discount', {}).get('amount_rows') or [], d.get('discount', {}).get('amount_col_totals') or [], d.get('discount', {}).get('amount_grand') or 0.0, 'Discount', True),
-                    ('Discount - Quantity', d.get('discount', {}).get('qty_rows') or [], d.get('discount', {}).get('qty_col_totals') or [], d.get('discount', {}).get('qty_grand') or 0, 'Discount', False),
-                ]"/>
+            <div class="article">
+                <main class="page" style="font-family: sans-serif; font-size: 7pt;">
+                    <t t-set="d" t-value="docs._aggregate_all_shops_data()"/>
+                    <t t-set="shops" t-value="d.get('shops') or []"/>
 
-                <t t-foreach="sections" t-as="sec">
-                    <t t-set="title" t-value="sec[0]"/>
-                    <t t-set="rows" t-value="sec[1]"/>
-                    <t t-set="col_totals" t-value="sec[2]"/>
-                    <t t-set="grand" t-value="sec[3]"/>
-                    <t t-set="lbl_title" t-value="sec[4]"/>
-                    <t t-set="is_money" t-value="sec[5]"/>
+                    <h3 style="text-align: center; margin: 0 0 4px 0; font-size: 12pt;">日結報表 - 全線</h3>
+                    <p style="text-align: center; margin: 0 0 10px 0; font-size: 9pt;">
+                        日期:&#160;<t t-esc="d.get('start_date') or ''"/>&#160;~&#160;<t t-esc="d.get('end_date') or ''"/>
+                    </p>
 
-                    <h4 class="section"><t t-esc="title"/></h4>
+                    <style>
+                        table.aas { width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 8px; font-size: 7pt; }
+                        table.aas th, table.aas td { border: 0.5pt solid #888; padding: 2px 3px; word-wrap: break-word; overflow: hidden; }
+                        table.aas thead th { background: #D9E1F2; text-align: center; font-weight: bold; }
+                        table.aas td.label { background: #F8F8F8; font-weight: bold; text-align: left; }
+                        table.aas td.num { text-align: right; }
+                        table.aas tr.total td { background: #FFF2CC; font-weight: bold; }
+                        table.aas td.subtotal { background: #FFF2CC; font-weight: bold; text-align: right; }
+                        table.aas col.lbl { width: 18%; }
+                        table.aas col.sub { width: 9%; }
+                        h4.section { margin: 6px 0 3px 0; font-size: 9pt; background: #BDD7EE; padding: 2px 6px; }
+                    </style>
+
+                    <!-- Header summary -->
+                    <h4 class="section">Header Summary</h4>
                     <table class="aas">
                         <colgroup>
                             <col class="lbl"/>
@@ -113,45 +74,100 @@
                         </colgroup>
                         <thead>
                             <tr>
-                                <th><t t-esc="lbl_title"/></th>
+                                <th>Metric</th>
                                 <t t-foreach="shops" t-as="s"><th><t t-esc="s['name']"/></th></t>
                                 <th>Subtotal</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-foreach="rows" t-as="r">
-                                <tr t-att-class="r.get('is_subtotal') and 'total' or ''">
-                                    <td class="label"><t t-esc="r['label'] or ''"/></td>
-                                    <t t-foreach="r['cells']" t-as="v">
+                            <t t-foreach="d.get('header_metrics') or []" t-as="m">
+                                <tr>
+                                    <td class="label"><t t-esc="m['label']"/></td>
+                                    <t t-foreach="m['cells']" t-as="v">
                                         <td class="num">
-                                            <t t-if="is_money"><t t-esc="'%.2f' % (v or 0.0)"/></t>
+                                            <t t-if="m.get('is_money')"><t t-esc="'%.2f' % (v or 0.0)"/></t>
                                             <t t-else=""><t t-esc="int(v or 0)"/></t>
                                         </td>
                                     </t>
                                     <td class="subtotal">
-                                        <t t-if="is_money"><t t-esc="'%.2f' % (r['subtotal'] or 0.0)"/></t>
-                                        <t t-else=""><t t-esc="int(r['subtotal'] or 0)"/></t>
+                                        <t t-if="m.get('is_money')"><t t-esc="'%.2f' % (m['subtotal'] or 0.0)"/></t>
+                                        <t t-else=""><t t-esc="int(m['subtotal'] or 0)"/></t>
                                     </td>
                                 </tr>
                             </t>
-                            <tr class="total">
-                                <td class="label">總計</td>
-                                <t t-foreach="col_totals" t-as="ct">
-                                    <td class="num">
-                                        <t t-if="is_money"><t t-esc="'%.2f' % (ct or 0.0)"/></t>
-                                        <t t-else=""><t t-esc="int(ct or 0)"/></t>
-                                    </td>
-                                </t>
-                                <td class="subtotal">
-                                    <t t-if="is_money"><t t-esc="'%.2f' % (grand or 0.0)"/></t>
-                                    <t t-else=""><t t-esc="int(grand or 0)"/></t>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
-                </t>
 
-            </main>
+                    <!-- Section renderer macro -->
+                    <t t-set="sections" t-value="[
+                        ('支付方式 - Amount', d.get('payment', {}).get('amount_rows') or [], d.get('payment', {}).get('amount_col_totals') or [], d.get('payment', {}).get('amount_grand') or 0.0, '支付方式', True),
+                        ('支付方式 - Transactions', d.get('payment', {}).get('qty_rows') or [], d.get('payment', {}).get('qty_col_totals') or [], d.get('payment', {}).get('qty_grand') or 0, '支付方式', False),
+                        ('Void單 - Amount', d.get('void', {}).get('amount_rows') or [], d.get('void', {}).get('amount_col_totals') or [], d.get('void', {}).get('amount_grand') or 0.0, 'Payment Method', True),
+                        ('Void單 - Quantity', d.get('void', {}).get('qty_rows') or [], d.get('void', {}).get('qty_col_totals') or [], d.get('void', {}).get('qty_grand') or 0.0, 'Payment Method', True),
+                        ('咭類兌換 - Amount Redeemed', d.get('coupon', {}).get('amount_rows') or [], d.get('coupon', {}).get('amount_col_totals') or [], d.get('coupon', {}).get('amount_grand') or 0.0, 'Coupon', True),
+                        ('咭類兌換 - Quantity Redeemed', d.get('coupon', {}).get('qty_rows') or [], d.get('coupon', {}).get('qty_col_totals') or [], d.get('coupon', {}).get('qty_grand') or 0, 'Coupon', False),
+                        ('Discount - Amount', d.get('discount', {}).get('amount_rows') or [], d.get('discount', {}).get('amount_col_totals') or [], d.get('discount', {}).get('amount_grand') or 0.0, 'Discount', True),
+                        ('Discount - Quantity', d.get('discount', {}).get('qty_rows') or [], d.get('discount', {}).get('qty_col_totals') or [], d.get('discount', {}).get('qty_grand') or 0, 'Discount', False),
+                    ]"/>
+
+                    <t t-foreach="sections" t-as="sec">
+                        <t t-set="title" t-value="sec[0]"/>
+                        <t t-set="rows" t-value="sec[1]"/>
+                        <t t-set="col_totals" t-value="sec[2]"/>
+                        <t t-set="grand" t-value="sec[3]"/>
+                        <t t-set="lbl_title" t-value="sec[4]"/>
+                        <t t-set="is_money" t-value="sec[5]"/>
+
+                        <h4 class="section"><t t-esc="title"/></h4>
+                        <table class="aas">
+                            <colgroup>
+                                <col class="lbl"/>
+                                <t t-foreach="shops" t-as="s"><col/></t>
+                                <col class="sub"/>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th><t t-esc="lbl_title"/></th>
+                                    <t t-foreach="shops" t-as="s"><th><t t-esc="s['name']"/></th></t>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="rows" t-as="r">
+                                    <tr t-att-class="r.get('is_subtotal') and 'total' or ''">
+                                        <td class="label"><t t-esc="r['label'] or ''"/></td>
+                                        <t t-foreach="r['cells']" t-as="v">
+                                            <td class="num">
+                                                <t t-if="is_money"><t t-esc="'%.2f' % (v or 0.0)"/></t>
+                                                <t t-else=""><t t-esc="int(v or 0)"/></t>
+                                            </td>
+                                        </t>
+                                        <td class="subtotal">
+                                            <t t-if="is_money"><t t-esc="'%.2f' % (r['subtotal'] or 0.0)"/></t>
+                                            <t t-else=""><t t-esc="int(r['subtotal'] or 0)"/></t>
+                                        </td>
+                                    </tr>
+                                </t>
+                                <tr class="total">
+                                    <td class="label">總計</td>
+                                    <t t-foreach="col_totals" t-as="ct">
+                                        <td class="num">
+                                            <t t-if="is_money"><t t-esc="'%.2f' % (ct or 0.0)"/></t>
+                                            <t t-else=""><t t-esc="int(ct or 0)"/></t>
+                                        </td>
+                                    </t>
+                                    <td class="subtotal">
+                                        <t t-if="is_money"><t t-esc="'%.2f' % (grand or 0.0)"/></t>
+                                        <t t-else=""><t t-esc="int(grand or 0)"/></t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </t>
+
+                </main>
+            </div>
+
         </t>
     </template>
 

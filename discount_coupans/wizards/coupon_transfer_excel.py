@@ -111,7 +111,7 @@ class CouponTransferExcelWizard(models.TransientModel):
         from_name = self.from_date.strftime('%Y%m%d')
         to_name = self.to_date.strftime('%Y%m%d')
         shops_part = 'All' if not self.shop_ids else '_'.join([s.name.replace(' ', '_') for s in self.shop_ids])
-        self.filename = f'Coupon_Transfer_{shops_part}_{from_name}_{to_name}.xlsx'
+        self.filename = f'禮券到舖表 {self.from_date.strftime("%Y-%m-%d")} 至 {self.to_date.strftime("%Y-%m-%d")}.xlsx'
 
         return {
             'type': 'ir.actions.act_url',

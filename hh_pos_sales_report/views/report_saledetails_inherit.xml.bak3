@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             A. Increase page margins to accommodate running header/footer
+             ═══════════════════════════════════════════════════════════════ -->
+        <template id="pos_daily_sales_report_layout_hh"
+                  inherit_id="point_of_sale.pos_daily_sales_report_layout">
+            <xpath expr="//html" position="attributes">
+                <attribute name="t-att-data-report-margin-top">20</attribute>
+                <attribute name="t-att-data-report-margin-bottom">15</attribute>
+                <attribute name="t-att-data-report-header-spacing">3</attribute>
+            </xpath>
+        </template>
+
+
+        <!-- ═══════════════════════════════════════════════════════════════
+             B. All content/layout changes to pos_session_sales_details
+             ═══════════════════════════════════════════════════════════════ -->
+        <template id="pos_session_sales_details_hh"
+                  inherit_id="point_of_sale.pos_session_sales_details">
+
+            <!-- 1. Running page HEADER: Odoo extracts class=header and passes it to wkhtmltopdf as header-html.
+                    span.page and span.topage are substituted with page numbers by wkhtmltopdf -->
+            <xpath expr="//div[@id='header']" position="before">
+                <div class="header" style="width:100%; font-size:0.75rem; padding:2px 10px; border-bottom:1px solid #ccc;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <tr>
+                            <td style="text-align:left; width:33%;"><strong>銷售明細</strong></td>
+                            <td style="text-align:center; width:34%;">
+                                <t t-out="date_start_str"/>
+                                <t t-if="date_stop_str"> &#8211; <t t-out="date_stop_str"/></t>
+                            </td>
+                            <td style="text-align:right; width:33%;">第 <span class="page"/> 頁，共 <span class="topage"/> 頁</td>
+                        </tr>
+                    </table>
+                </div>
+            </xpath>
+
+            <!-- 2. Running page FOOTER -->
+            <xpath expr="//div[@id='end_report']" position="before">
+                <div class="footer" style="width:100%; font-size:0.75rem; padding:2px 10px; border-top:1px solid #ccc;">
+                    <table style="width:100%; border-collapse:collapse;">
+                        <tr>
+                            <td style="text-align:left; width:33%;"><strong>銷售明細</strong></td>
+                            <td style="text-align:center; width:34%;">
+                                <t t-out="date_start_str"/>
+                                <t t-if="date_stop_str"> &#8211; <t t-out="date_stop_str"/></t>
+                            </td>
+                            <td style="text-align:right; width:33%;">第 <span class="page"/> 頁，共 <span class="topage"/> 頁</td>
+                        </tr>
+                    </table>
+                </div>
+            </xpath>
+
+            <!-- 3. Remove the "截至" badge (filter date is now in header/footer and under title) -->
+            <xpath expr="//span[@class='badge bg-light text-dark border border-dark p-2']" position="replace"/>
+
+            <!-- 4. Restructure multi-session title block:
+                    銷售明細 → filtered date directly below → config codes -->
+            <xpath expr="//t[@t-if=&quot;state == 'multiple'&quot;]" position="replace">
+                <t t-if="state == 'multiple'">
+                    <h2>銷售明細</h2>
+                    <div class="oe_structure"/>
+                    <t t-if="date_start_str">
+                        <p style="font-size:1rem; margin:0.3rem 0 0.2rem 0;">
+                            <span t-out="date_start_str"/>
+                            <t t-if="date_stop_str"> &#8211; <span t-out="date_stop_str"/></t>
+                        </p>
+                    </t>
+                    <t t-if="config_names">
+                        <p style="font-size:0.8rem; color:#555; margin:0.1rem 0 0.3rem 0;">
+                            <t t-foreach="config_names" t-as="name">
+                                <span t-out="name"/>
+                                <t t-if="name_index + 1 &lt; name_size">, </t>
+                            </t>
+                        </p>
+                    </t>
+                </t>
+            </xpath>
+
+            <!-- 5. Date display: only show for single-session (multi-session shows it under title above) -->
+            <xpath expr="//t[@t-if='date_start and date_stop']" position="replace">
+                <t t-if="state != 'multiple' and date_start_str">
+                    <span t-out="date_start_str"/>
+                    <t t-if="date_stop_str"> &#8211; <span t-out="date_stop_str"/></t>
+                </t>
+            </xpath>
+
+            <!-- 6. Sales table: column headers (產品/數量/金額) + split goods vs service/discount -->
+            <xpath expr="//div[@id='sales']" position="replace">
+
+                <div t-if="goods_products" id="sales">
+                    <h6 class="bg-secondary p-1 fw-bold">銷售</h6>
+                    <div class="oe_structure"/>
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th class="ps-5">產品</th>
+                                <th/>
+                                <th class="text-end">數量</th>
+                                <th class="text-end">金額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="goods_products" t-as="category" class="border-bottom border-secondary">
+                                <td class="ps-2 fw-bold"><span t-out="category['name']"/></td>
+                                <td class="fw-bold"/>
+                                <td class="text-end fw-bold"><span t-out="category['qty']"/></td>
+                                <td class="text-end fw-bold">
+                                    <t t-if="currency['position']">
+                                        <span t-out="category['total']" t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-out='currency["symbol"]'/><span t-out="category['total']" t-options="{'widget':'float','precision':currency['precision']}"/>
+                                    </t>
+                                </td>
+                                <tr t-foreach="category['products']" t-as="line" class="border-bottom border-secondary">
+                                    <t t-set="ref" t-value="line['code'] and '[%s] ' % line['code'] or ''"/>
+                                    <td class="ps-5"><span t-out="ref"/><span t-out="line['product_name']"/></td>
+                                    <td/>
+                                    <td class="text-end">
+                                        <span t-out="line['quantity']"/>
+                                        <t t-if='line["uom"] != "Units"'><span t-out='line["uom"]'/></t>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-if="currency['position']">
+                                            <span t-out='line["base_amount"]' t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/>
+                                        </t>
+                                        <t t-else="">
+                                            <span t-out='currency["symbol"]'/><span t-out='line["base_amount"]' t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tr>
+                            <tr>
+                                <td><strong>總計</strong></td>
+                                <td/>
+                                <td class="text-end"><strong><span t-out="goods_info['qty']"/></strong></td>
+                                <td class="text-end">
+                                    <t t-if="currency['position']">
+                                        <strong><span t-out='goods_info["total"]' t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/></strong>
+                                    </t>
+                                    <t t-else="">
+                                        <strong><span t-out='currency["symbol"]'/><span t-out='goods_info["total"]' t-options="{'widget':'float','precision':currency['precision']}"/></strong>
+                                    </t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div t-if="service_products" id="service_sales">
+                    <h6 class="bg-secondary p-1 fw-bold">折扣及推廣項目</h6>
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th class="ps-5">產品</th>
+                                <th/>
+                                <th class="text-end">數量</th>
+                                <th class="text-end">金額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="service_products" t-as="category" class="border-bottom border-secondary">
+                                <td class="ps-2 fw-bold"><span t-out="category['name']"/></td>
+                                <td class="fw-bold"/>
+                                <td class="text-end fw-bold"><span t-out="category['qty']"/></td>
+                                <td class="text-end fw-bold">
+                                    <t t-if="currency['position']">
+                                        <span t-out="category['total']" t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-out='currency["symbol"]'/><span t-out="category['total']" t-options="{'widget':'float','precision':currency['precision']}"/>
+                                    </t>
+                                </td>
+                                <tr t-foreach="category['products']" t-as="line" class="border-bottom border-secondary">
+                                    <t t-set="ref" t-value="line['code'] and '[%s] ' % line['code'] or ''"/>
+                                    <td class="ps-5"><span t-out="ref"/><span t-out="line['product_name']"/></td>
+                                    <td/>
+                                    <td class="text-end">
+                                        <span t-out="line['quantity']"/>
+                                        <t t-if='line["uom"] != "Units"'><span t-out='line["uom"]'/></t>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-if="currency['position']">
+                                            <span t-out='line["base_amount"]' t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/>
+                                        </t>
+                                        <t t-else="">
+                                            <span t-out='currency["symbol"]'/><span t-out='line["base_amount"]' t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tr>
+                            <tr>
+                                <td><strong>總計</strong></td>
+                                <td/>
+                                <td class="text-end"><strong><span t-out="service_info['qty']"/></strong></td>
+                                <td class="text-end">
+                                    <t t-if="currency['position']">
+                                        <strong><span t-out='service_info["total"]' t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/></strong>
+                                    </t>
+                                    <t t-else="">
+                                        <strong><span t-out='currency["symbol"]'/><span t-out='service_info["total"]' t-options="{'widget':'float','precision':currency['precision']}"/></strong>
+                                    </t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </xpath>
+
+            <!-- 7. Payment summary: consolidated by method -->
+            <xpath expr="//t[@id='other_payments']" position="replace">
+                <t t-if="payments_consolidated" id="other_payments">
+                    <h6 class="bg-secondary p-1 fw-bold w-50 ms-auto">付款</h6>
+                    <table class="table table-sm table-borderless w-50 ms-auto">
+                        <tbody>
+                            <tr t-foreach="payments_consolidated" t-as="payment">
+                                <td class="ps-2 fw-bold"><span t-out="payment['name']"/></td>
+                                <td class="text-end">
+                                    <span t-if="currency['position']">
+                                        <span t-out="payment['total']" t-options="{'widget':'float','precision':currency['precision']}"/><span t-out='currency["symbol"]'/>
+                                    </span>
+                                    <span t-else="">
+                                        <span t-out='currency["symbol"]'/><span t-out="payment['total']" t-options="{'widget':'float','precision':currency['precision']}"/>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="oe_structure"/>
+                </t>
+            </xpath>
+
+            <!-- 8. Remove Discounts section -->
+            <xpath expr="//div[@id='discounts']" position="replace"/>
+
+            <!-- 9. Remove Session Control section -->
+            <xpath expr="//t[@id='closing_session']" position="replace"/>
+
+        </template>
+    </data>
+</odoo>

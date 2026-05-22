@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <template id="pos_session_sales_details_hh"
+                  inherit_id="point_of_sale.pos_session_sales_details">
+
+            <!-- 1. Date: show date only (no time) ─────────────────────────── -->
+            <xpath expr="//t[@t-if='date_start and date_stop']" position="replace">
+                <t t-if="date_start_str">
+                    <span t-out="date_start_str"/>
+                    <t t-if="date_stop_str"> - <span t-out="date_stop_str"/></t>
+                </t>
+            </xpath>
+
+            <!-- 2. Sales table: column headers + goods / service split ─────── -->
+            <xpath expr="//div[@id='sales']" position="replace">
+
+                <!-- Goods products -->
+                <div t-if="goods_products" id="sales">
+                    <h6 class="bg-secondary p-1 fw-bold">銷售</h6>
+                    <div class="oe_structure"/>
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th class="ps-5">產品</th>
+                                <th/>
+                                <th class="text-end">數量</th>
+                                <th class="text-end">金額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="goods_products" t-as="category"
+                                class="border-bottom border-secondary">
+                                <td class="ps-2 fw-bold">
+                                    <span t-out="category['name']"/>
+                                </td>
+                                <td class="fw-bold"/>
+                                <td class="text-end fw-bold">
+                                    <span t-out="category['qty']"/>
+                                </td>
+                                <td class="text-end fw-bold">
+                                    <t t-if="currency['position']">
+                                        <span t-out="category['total']"
+                                              t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        <span t-out='currency["symbol"]'/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-out='currency["symbol"]'/>
+                                        <span t-out="category['total']"
+                                              t-options="{'widget':'float','precision':currency['precision']}"/>
+                                    </t>
+                                </td>
+                                <tr t-foreach="category['products']" t-as="line"
+                                    class="border-bottom border-secondary">
+                                    <t t-set="ref" t-value="line['code'] and '[%s] ' % line['code'] or ''"/>
+                                    <td class="ps-5">
+                                        <span t-out="ref"/>
+                                        <span t-out="line['product_name']"/>
+                                    </td>
+                                    <td/>
+                                    <td class="text-end">
+                                        <span t-out="line['quantity']"/>
+                                        <t t-if='line["uom"] != "Units"'>
+                                            <span t-out='line["uom"]'/>
+                                        </t>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-if="currency['position']">
+                                            <span t-out='line["base_amount"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                            <span t-out='currency["symbol"]'/>
+                                        </t>
+                                        <t t-else="">
+                                            <span t-out='currency["symbol"]'/>
+                                            <span t-out='line["base_amount"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tr>
+                            <tr>
+                                <td><strong>總計</strong></td>
+                                <td/>
+                                <td class="text-end">
+                                    <strong><span t-out="goods_info['qty']"/></strong>
+                                </td>
+                                <td class="text-end">
+                                    <t t-if="currency['position']">
+                                        <strong>
+                                            <span t-out='goods_info["total"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                            <span t-out='currency["symbol"]'/>
+                                        </strong>
+                                    </t>
+                                    <t t-else="">
+                                        <strong>
+                                            <span t-out='currency["symbol"]'/>
+                                            <span t-out='goods_info["total"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        </strong>
+                                    </t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Service / Discount / Promotion items -->
+                <div t-if="service_products" id="service_sales">
+                    <h6 class="bg-secondary p-1 fw-bold">折扣及推廣項目</h6>
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr class="border-bottom border-secondary">
+                                <th class="ps-5">產品</th>
+                                <th/>
+                                <th class="text-end">數量</th>
+                                <th class="text-end">金額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr t-foreach="service_products" t-as="category"
+                                class="border-bottom border-secondary">
+                                <td class="ps-2 fw-bold">
+                                    <span t-out="category['name']"/>
+                                </td>
+                                <td class="fw-bold"/>
+                                <td class="text-end fw-bold">
+                                    <span t-out="category['qty']"/>
+                                </td>
+                                <td class="text-end fw-bold">
+                                    <t t-if="currency['position']">
+                                        <span t-out="category['total']"
+                                              t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        <span t-out='currency["symbol"]'/>
+                                    </t>
+                                    <t t-else="">
+                                        <span t-out='currency["symbol"]'/>
+                                        <span t-out="category['total']"
+                                              t-options="{'widget':'float','precision':currency['precision']}"/>
+                                    </t>
+                                </td>
+                                <tr t-foreach="category['products']" t-as="line"
+                                    class="border-bottom border-secondary">
+                                    <t t-set="ref" t-value="line['code'] and '[%s] ' % line['code'] or ''"/>
+                                    <td class="ps-5">
+                                        <span t-out="ref"/>
+                                        <span t-out="line['product_name']"/>
+                                    </td>
+                                    <td/>
+                                    <td class="text-end">
+                                        <span t-out="line['quantity']"/>
+                                        <t t-if='line["uom"] != "Units"'>
+                                            <span t-out='line["uom"]'/>
+                                        </t>
+                                    </td>
+                                    <td class="text-end">
+                                        <t t-if="currency['position']">
+                                            <span t-out='line["base_amount"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                            <span t-out='currency["symbol"]'/>
+                                        </t>
+                                        <t t-else="">
+                                            <span t-out='currency["symbol"]'/>
+                                            <span t-out='line["base_amount"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tr>
+                            <tr>
+                                <td><strong>總計</strong></td>
+                                <td/>
+                                <td class="text-end">
+                                    <strong><span t-out="service_info['qty']"/></strong>
+                                </td>
+                                <td class="text-end">
+                                    <t t-if="currency['position']">
+                                        <strong>
+                                            <span t-out='service_info["total"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                            <span t-out='currency["symbol"]'/>
+                                        </strong>
+                                    </t>
+                                    <t t-else="">
+                                        <strong>
+                                            <span t-out='currency["symbol"]'/>
+                                            <span t-out='service_info["total"]'
+                                                  t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        </strong>
+                                    </t>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </xpath>
+
+            <!-- 3. Payment summary: consolidated by method ────────────────── -->
+            <xpath expr="//t[@id='other_payments']" position="replace">
+                <t t-if="payments_consolidated" id="other_payments">
+                    <h6 class="bg-secondary p-1 fw-bold w-50 ms-auto">付款</h6>
+                    <table class="table table-sm table-borderless w-50 ms-auto">
+                        <tbody>
+                            <tr t-foreach="payments_consolidated" t-as="payment">
+                                <td class="ps-2 fw-bold">
+                                    <span t-out="payment['name']"/>
+                                </td>
+                                <td class="text-end">
+                                    <span t-if="currency['position']">
+                                        <span t-out="payment['total']"
+                                              t-options="{'widget':'float','precision':currency['precision']}"/>
+                                        <span t-out='currency["symbol"]'/>
+                                    </span>
+                                    <span t-else="">
+                                        <span t-out='currency["symbol"]'/>
+                                        <span t-out="payment['total']"
+                                              t-options="{'widget':'float','precision':currency['precision']}"/>
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="oe_structure"/>
+                </t>
+            </xpath>
+
+
+            <!-- 4. Remove Discounts section (confusing alongside new table) -->
+            <xpath expr="//div[@id='discounts']" position="replace"/>
+
+            <!-- 5. Remove Session Control section -->
+            <xpath expr="//t[@id='closing_session']" position="replace"/>
+
+
+            <!-- 6. Fix "截至" date format from MM/DD/YYYY to DD/MM/YYYY
+                 Target the badge span directly - avoids translation mismatch on 'As of' -->
+            <xpath expr="//span[@class='badge bg-light text-dark border border-dark p-2']" position="replace">
+                <span class="badge bg-light text-dark border border-dark p-2">
+                    <strong>&#160;&#160;截至 <span t-esc="context_timestamp(datetime.datetime.now()).strftime('%d/%m/%Y')"/></strong>
+                </span>
+            </xpath>
+
+        </template>
+    </data>
+</odoo>

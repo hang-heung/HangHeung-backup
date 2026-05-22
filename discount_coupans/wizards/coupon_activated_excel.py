@@ -1,5 +1,5 @@
-from datetime import timedelta
-
+from datetime import datetime, time
+import pytz
 from odoo import models, fields, api
 import base64
 import io
@@ -21,13 +21,13 @@ class CouponActivatedExcelWizard(models.TransientModel):
             ('program_id.program_type', '=', 'coupons')
         ]
 
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
         if self.from_date:
-            domain.append(('date_activation', '>=', self.from_date))
+            start_utc = tz.localize(datetime.combine(self.from_date, time.min)).astimezone(pytz.UTC)
+            domain.append(('date_activation', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')))
         if self.to_date:
-            # date_activation is a Datetime; '<= to_date' (Date cast to
-            # midnight) drops every activation later that same day. Use
-            # exclusive next-day upper bound.
-            domain.append(('date_activation', '<', self.to_date + timedelta(days=1)))
+            end_utc = tz.localize(datetime.combine(self.to_date, time.max)).astimezone(pytz.UTC)
+            domain.append(('date_activation', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')))
 
         coupons = self.env['loyalty.card'].search(domain)
 
@@ -73,7 +73,7 @@ class CouponActivatedExcelWizard(models.TransientModel):
 
         self.write({
             'file_data': base64.b64encode(excel_data),
-            'file_name': 'Activated_Coupons.xlsx',
+            'file_name': f"已生效禮券 {self.from_date.strftime('%Y-%m-%d') if self.from_date else 'all'} 至 {self.to_date.strftime('%Y-%m-%d') if self.to_date else 'all'}.xlsx",
         })
 
         return {

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+    <record id="paperformat_daily_product_sales_inventory" model="report.paperformat">
+        <field name="name">Daily Product Sales and Inventory Report Format</field>
+        <field name="default" eval="False"/>
+        <field name="format">A4</field>
+        <field name="orientation">Landscape</field>
+        <field name="margin_top">12</field>
+        <field name="margin_bottom">12</field>
+        <field name="margin_left">8</field>
+        <field name="margin_right">8</field>
+        <field name="header_line" eval="False"/>
+        <field name="header_spacing">0</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="action_daily_product_sales_inventory_report_pdf" model="ir.actions.report">
+        <field name="name">Daily Product Sales and Inventory Report PDF</field>
+        <field name="model">daily.product.sales.inventory.report</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">pos_shop_report.report_daily_product_sales_inventory_pdf_template</field>
+        <field name="report_file">pos_shop_report.report_daily_product_sales_inventory_pdf_template</field>
+        <field name="paperformat_id" ref="pos_shop_report.paperformat_daily_product_sales_inventory"/>
+    </record>
+
+    <template id="report_daily_product_sales_inventory_pdf_template">
+        <t t-call="web.basic_layout">
+            <main class="page" style="font-family: sans-serif; font-size: 8pt;">
+                <t t-foreach="docs" t-as="doc">
+                    <t t-set="lines" t-value="doc._compute_report_lines()"/>
+
+                    <h3 style="text-align: center; margin: 0 0 6px 0;">
+                        <t t-esc="doc.env.company.name"/>
+                    </h3>
+                    <h4 style="text-align: center; margin: 0 0 8px 0;">當天貨品銷售及庫存報表</h4>
+
+                    <table style="width: 50%; margin: 0 auto 8px auto; border-collapse: collapse; font-size: 8pt;">
+                        <tr>
+                            <td style="padding: 2px 6px; font-weight: bold;">日期:</td>
+                            <td style="padding: 2px 6px;">
+                                <t t-esc="str(doc.date_start)"/> ~ <t t-esc="str(doc.date_end)"/>
+                            </td>
+                            <td style="padding: 2px 6px; font-weight: bold;">分店:</td>
+                            <td style="padding: 2px 6px;"><t t-esc="doc.shop_id.name or ''"/></td>
+                        </tr>
+                    </table>
+
+                    <table style="width: 100%; border-collapse: collapse; font-size: 7.5pt;">
+                        <thead>
+                            <tr style="background: #CCCCCC; font-weight: bold;">
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: left;">產品編號</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: left;">產品名稱</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: center;">單位</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">價錢</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">上存</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">進貨數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">調撥數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">銷售數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">退貨數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">棄貨數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">調整數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">結存數</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">銷售金額</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">折扣金額</th>
+                                <th style="border: 1px solid #999; padding: 3px 4px; text-align: right;">銷售淨額</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-set="total_sales_qty" t-value="0"/>
+                            <t t-set="total_refund_qty" t-value="0"/>
+                            <t t-set="total_sales_amount" t-value="0.0"/>
+                            <t t-set="total_discount_amount" t-value="0.0"/>
+                            <t t-set="total_final_amount" t-value="0.0"/>
+                            <t t-foreach="lines" t-as="line">
+                                <t t-set="total_sales_qty" t-value="total_sales_qty + (line.get('sales_qty') or 0)"/>
+                                <t t-set="total_refund_qty" t-value="total_refund_qty + (line.get('sales_refund_qty') or 0)"/>
+                                <t t-set="total_sales_amount" t-value="total_sales_amount + (line.get('sales_amount') or 0.0)"/>
+                                <t t-set="total_discount_amount" t-value="total_discount_amount + (line.get('discount_amount') or 0.0)"/>
+                                <t t-set="total_final_amount" t-value="total_final_amount + (line.get('final_amount') or 0.0)"/>
+                                <tr>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px;"><t t-esc="line.get('sku') or ''"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px;"><t t-esc="line.get('name') or ''"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: center;"><t t-esc="line.get('unit') or ''"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="'%.2f' % (line.get('price') or 0.0)"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('previous_stock') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('stock_in') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('transfer_qty') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('sales_qty') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('sales_refund_qty') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('scrap_qty') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('adjustment_qty') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="line.get('closing_stock') or 0"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="'%.2f' % (line.get('sales_amount') or 0.0)"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="'%.2f' % (line.get('discount_amount') or 0.0)"/></td>
+                                    <td style="border: 1px solid #ccc; padding: 2px 4px; text-align: right;"><t t-esc="'%.2f' % (line.get('final_amount') or 0.0)"/></td>
+                                </tr>
+                            </t>
+                            <tr style="font-weight: bold; background: #f4f4f4;">
+                                <td colspan="7" style="border: 1px solid #999; padding: 3px 4px; text-align: right;">總計</td>
+                                <td style="border: 1px solid #999; padding: 3px 4px; text-align: right;"><t t-esc="total_sales_qty"/></td>
+                                <td style="border: 1px solid #999; padding: 3px 4px; text-align: right;"><t t-esc="total_refund_qty"/></td>
+                                <td colspan="3" style="border: 1px solid #999; padding: 3px 4px;"></td>
+                                <td style="border: 1px solid #999; padding: 3px 4px; text-align: right;"><t t-esc="'%.2f' % total_sales_amount"/></td>
+                                <td style="border: 1px solid #999; padding: 3px 4px; text-align: right;"><t t-esc="'%.2f' % total_discount_amount"/></td>
+                                <td style="border: 1px solid #999; padding: 3px 4px; text-align: right;"><t t-esc="'%.2f' % total_final_amount"/></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </t>
+            </main>
+        </t>
+    </template>
+
+</odoo>

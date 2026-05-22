@@ -1,7 +1,8 @@
 from odoo import models, fields
 from io import BytesIO
 import base64
-from datetime import datetime
+from datetime import datetime, time
+import pytz
 import xlsxwriter
 
 class PurchaseOrderReportWizard(models.TransientModel):
@@ -10,21 +11,24 @@ class PurchaseOrderReportWizard(models.TransientModel):
 
     date_from = fields.Date(string="Start Date", required=True)
     date_to = fields.Date(string="End Date", required=True)
-    company_selector = fields.Selection([
-        ('1', 'Hoymay HK Ltd'),
-        ('2', "That's Ltd"),
-        ('3', 'HANG HEUNG CAKE SHOP COMPANY LIMITED'),
-    ], string="Company", required=True)
+    company_id = fields.Many2one(
+        'res.company',
+        string='Company',
+        required=True,
+        default=lambda self: self.env.company,
+    )
 
 
     def action_export_xlsx(self):
         self.ensure_one()
 
-        company_id_int = int(self.company_selector)
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_utc = tz.localize(datetime.combine(self.date_from, time.min)).astimezone(pytz.UTC)
+        end_utc = tz.localize(datetime.combine(self.date_to, time.max)).astimezone(pytz.UTC)
         purchase_orders = self.env['purchase.order'].sudo().search([
-            ('date_order', '>=', self.date_from),
-            ('date_order', '<=', self.date_to),
-            ('company_id', '=', company_id_int),
+            ('date_order', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('date_order', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('company_id', '=', self.company_id.id),
         ], order='date_order asc')
 
         output = BytesIO()

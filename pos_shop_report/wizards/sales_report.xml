@@ -31,12 +31,5 @@
         <field name="target">new</field>
     </record>
 
-    <record id="action_sales_report_pdf_wizard" model="ir.actions.act_window">
-        <field name="name">Sales Report PDF</field>
-        <field name="res_model">sales.report.excel.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_sales_report_excel_wizard"/>
-        <field name="target">new</field>
-    </record>
 
 </odoo>

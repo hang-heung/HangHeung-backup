@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_pos_details_wizard_hh" model="ir.ui.view">
+            <field name="name">pos.details.wizard.form.hh</field>
+            <field name="model">pos.details.wizard</field>
+            <field name="inherit_id" ref="point_of_sale.view_pos_details_wizard"/>
+            <field name="arch" type="xml">
+                <!-- Replace datetime Start Date with date-only picker -->
+                <xpath expr="//field[@name='start_date']" position="replace">
+                    <field name="start_date_only" widget="date" string="Start Date"/>
+                </xpath>
+                <!-- Replace datetime End Date with date-only picker -->
+                <xpath expr="//field[@name='end_date']" position="replace">
+                    <field name="end_date_only" widget="date" string="End Date"/>
+                </xpath>
+                <!-- Replace Print button with PDF + Excel buttons -->
+                <xpath expr="//button[@name='generate_report']" position="replace">
+                    <button name="generate_report" string="PDF" type="object" class="btn-primary" data-hotkey="q"/>
+                    <button name="generate_excel" string="Excel" type="object" class="btn-success" data-hotkey="e"/>
+                </xpath>
+            </field>
+        </record>
+
+        <!-- Rename Session Report menu and action to 時段報告 -->
+        <record id="point_of_sale.menu_report_daily_details" model="ir.ui.menu">
+            <field name="name">時段報告</field>
+        </record>
+
+        <record id="point_of_sale.action_report_pos_daily_sales_reports" model="ir.actions.act_window">
+            <field name="name">時段報告</field>
+        </record>
+
+    </data>
+</odoo>

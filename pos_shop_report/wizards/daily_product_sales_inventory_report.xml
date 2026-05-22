@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <odoo>
     <record id="view_daily_product_sales_inventory_report_wizard" model="ir.ui.view">
         <field name="name">daily.product.sales.inventory.report.form</field>
@@ -10,7 +11,8 @@
                     <field name="date_end"/>
                 </group>
                 <footer>
-                    <button name="generate_xls_report" type="object" string="Generate Report" class="btn-primary"/>
+                    <button name="generate_xls_report" type="object" string="Excel" class="btn-success"/>
+                    <button name="generate_pdf_report" type="object" string="PDF" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
+import pytz
 from odoo import models, fields, api
 from io import BytesIO
 import base64
@@ -34,11 +35,13 @@ class DeliveryReportWizard(models.TransientModel):
         # date_to is a Date but scheduled_date is a Datetime; use exclusive
         # next-day upper bound so deliveries scheduled at any time on date_to
         # are still included.
-        date_to_excl = self.date_to + timedelta(days=1)
+        tz = pytz.timezone(self.env.user.tz or 'UTC')
+        start_utc = tz.localize(datetime.combine(self.date_from, time.min)).astimezone(pytz.UTC)
+        end_utc = tz.localize(datetime.combine(self.date_to, time.max)).astimezone(pytz.UTC)
         pickings = self.env['stock.picking'].search([
             ('picking_type_code', '=', 'outgoing'),
-            ('scheduled_date', '>=', self.date_from),
-            ('scheduled_date', '<', date_to_excl),
+            ('scheduled_date', '>=', start_utc.strftime('%Y-%m-%d %H:%M:%S')),
+            ('scheduled_date', '<=', end_utc.strftime('%Y-%m-%d %H:%M:%S')),
             ('state', 'in', ['assigned', 'confirmed', 'waiting', 'done']),
         ])
 
