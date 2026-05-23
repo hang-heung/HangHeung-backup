@@ -50,55 +50,109 @@ class SalesReportExcelWizard(models.TransientModel):
         orders = self.env['pos.order'].search(domain)
         cancel_orders = self.env['pos.order'].search(cancel_domain)
         if not orders and not cancel_orders:
-            raise ValidationError("No POS orders found for the selected date range and POS.")
+            raise ValidationError('No POS orders found for the selected date range and POS.')
 
         order_total = sum(o.amount_total for o in orders)
 
         cancel_order_total = 0.0
         cancel_qty = 0.0
-        void_by_method = defaultdict(lambda: {"amount": 0.0, "quantity": 0.0})
+        void_by_method = defaultdict(lambda: {'amount': 0.0, 'quantity': 0.0})
         for order in cancel_orders:
             cancel_order_total += order.amount_total
             order_qty = sum(line.qty for line in order.lines)
             cancel_qty += order_qty
             payments = order.payment_ids
             if not payments:
-                void_by_method["(No Payment)"]["quantity"] += order_qty
+                void_by_method['(No Payment)']['quantity'] += order_qty
                 continue
             n_payments = len(payments)
             for payment in payments:
-                method = payment.payment_method_id.name or "Unknown"
-                void_by_method[method]["amount"] += payment.amount
-                void_by_method[method]["quantity"] += order_qty / n_payments
+                method = payment.payment_method_id.name or 'Unknown'
+                void_by_method[method]['amount'] += payment.amount
+                void_by_method[method]['quantity'] += order_qty / n_payments
 
         coupon_program_types = ('coupons', 'gift_card', 'ewallet')
-        coupon_redemption = defaultdict(lambda: {"amount": 0.0, "quantity": 0})
-        discount_summary = defaultdict(lambda: {"amount": 0.0, "quantity": 0})
-        for line in orders.mapped("lines"):
+        coupon_redemption = defaultdict(lambda: {'amount': 0.0, 'quantity': 0})
+        discount_summary = defaultdict(lambda: {'amount': 0.0, 'quantity': 0})
+        for line in orders.mapped('lines'):
             if not line.is_reward_line or not line.reward_id:
                 continue
             program = line.reward_id.program_id
-            name = program.name or "Unknown"
+            name = program.name or 'Unknown'
             if program.program_type in coupon_program_types:
-                coupon_redemption[name]["amount"] += abs(line.price_subtotal_incl)
-                coupon_redemption[name]["quantity"] += 1
+                coupon_redemption[name]['amount'] += abs(line.price_subtotal_incl)
+                coupon_redemption[name]['quantity'] += 1
             else:
-                discount_summary[name]["amount"] += abs(line.price_subtotal_incl)
-                discount_summary[name]["quantity"] += 1
+                discount_summary[name]['amount'] += abs(line.price_subtotal_incl)
+                discount_summary[name]['quantity'] += 1
 
         total_amount = 0.0
         total_transcation = len(orders)
-        payment_summary = defaultdict(lambda: {"total_amount": 0.0, "transactions": 0})
-        for payment in orders.mapped("payment_ids"):
-            method = payment.payment_method_id.name or "Unknown"
-            payment_summary[method]["total_amount"] += payment.amount
-            payment_summary[method]["transactions"] += 1
+        payment_summary = defaultdict(lambda: {'total_amount': 0.0, 'transactions': 0})
+        for payment in orders.mapped('payment_ids'):
+            method = payment.payment_method_id.name or 'Unknown'
+            payment_summary[method]['total_amount'] += payment.amount
+            payment_summary[method]['transactions'] += 1
             total_amount += payment.amount
+
+        # ── Store info ────────────────────────────────────────────────────
+        pos_name = self.pos.name if self.pos else ''
+        store_code = pos_name.split(' - ')[0].strip() if ' - ' in pos_name else pos_name
+
+        wh = (self.pos.picking_type_id.warehouse_id
+              if self.pos and self.pos.picking_type_id else None)
+        wp = wh.partner_id if wh else None
+        store_address = ' '.join(filter(None, [
+            wp.street if wp else None,
+            wp.city if wp else None,
+        ]))
+        store_phone = (wp.phone or '') if wp else ''
+
+        # ── HH Logo from static file (base64) ────────────────────────────
+        import os as _os, base64 as _b64
+        _logo_path = _os.path.join(
+            _os.path.dirname(_os.path.dirname(_os.path.abspath(__file__))),
+            'static', 'src', 'img', 'hh_logo.png',
+        )
+        try:
+            with open(_logo_path, 'rb') as _lf:
+                hh_logo_b64 = _b64.b64encode(_lf.read()).decode('ascii')
+        except Exception:
+            hh_logo_b64 = ''
+
+        # ── Report generated timestamp (HKT) ─────────────────────────────
+        hkt = pytz.timezone('Asia/Hong_Kong')
+        now_hkt = datetime.now(pytz.utc).astimezone(hkt)
+        weekday_zh = ['星期一', '星期二', '星期三', '星期四', '星期五', '星期六', '星期日']
+        report_generated_hkt = '{} ({}) {}'.format(
+            now_hkt.strftime('%d-%m-%Y'),
+            weekday_zh[now_hkt.weekday()],
+            now_hkt.strftime('%H:%M:%S'),
+        )
+
+        # ── Date range display ────────────────────────────────────────────
+        start_dt = datetime.combine(self.start_date, time.min)
+        end_dt = datetime.combine(self.end_date, time.min)
+        start_display = '{} ({})'.format(
+            self.start_date.strftime('%d-%m-%Y'),
+            weekday_zh[start_dt.weekday()],
+        )
+        end_display = '{} ({})'.format(
+            self.end_date.strftime('%d-%m-%Y'),
+            weekday_zh[end_dt.weekday()],
+        )
 
         return {
             'start_date': self.start_date.strftime('%Y-%m-%d') if self.start_date else '',
             'end_date': self.end_date.strftime('%Y-%m-%d') if self.end_date else '',
-            'pos_name': self.pos.name if self.pos else '',
+            'start_display': start_display,
+            'end_display': end_display,
+            'pos_name': pos_name,
+            'store_code': store_code,
+            'store_address': store_address,
+            'store_phone': store_phone,
+            'hh_logo_b64': hh_logo_b64,
+            'report_generated_hkt': report_generated_hkt,
             'order_total': order_total,
             'cancel_order_total': cancel_order_total,
             'cancel_qty': cancel_qty,
@@ -132,7 +186,7 @@ class SalesReportExcelWizard(models.TransientModel):
 
         output = io.BytesIO()
         workbook = xlsxwriter.Workbook(output, {'in_memory': True})
-        sheet = workbook.add_worksheet("Sales Report")
+        sheet = workbook.add_worksheet('Sales Report')
 
         header_format = workbook.add_format({'bold': True, 'bg_color': '#D9E1F2', 'border': 1, 'align': 'left'})
         cell_format = workbook.add_format({'text_wrap': True, 'valign': 'top', 'align': 'left'})
@@ -156,85 +210,85 @@ class SalesReportExcelWizard(models.TransientModel):
         discount_summary = {d['name']: {'amount': d['amount'], 'quantity': d['quantity']} for d in data['discount_summary']}
 
         row = 1
-        sheet.write(row, 0, "日期:", header_format)
+        sheet.write(row, 0, '日期:', header_format)
         sheet.write(row, 1, self.start_date.strftime('%Y-%m-%d'), cell_value_format)
         row += 1
-        sheet.write(row, 0, "(日結)時間:", header_format)
+        sheet.write(row, 0, '(日結)時間:', header_format)
         sheet.write(row, 1, self.end_date.strftime('%Y-%m-%d'), cell_value_format)
 
         row += 1
-        sheet.write(row, 0, "分店:", header_format)
+        sheet.write(row, 0, '分店:', header_format)
         sheet.write(row, 1, self.pos.name if self.pos else '', cell_value_format)
 
         row += 1
-        sheet.write(row, 0, "總計($) :", header_format)
+        sheet.write(row, 0, '總計($) :', header_format)
         sheet.write(row, 1, order_total, cell_value_format)
 
         row += 1
-        sheet.write(row, 0, "交易數量 :", header_format)
+        sheet.write(row, 0, '交易數量 :', header_format)
         sheet.write(row, 1, total_transcation, cell_value_format)
 
         row += 2
-        sheet.write(row, 0, "支付方式", header_format)
-        sheet.write(row, 1, "Amount", header_format)
-        sheet.write(row, 2, "Transactions", header_format)
+        sheet.write(row, 0, '支付方式', header_format)
+        sheet.write(row, 1, 'Amount', header_format)
+        sheet.write(row, 2, 'Transactions', header_format)
         row += 1
         for method, vals in payment_summary.items():
             sheet.write(row, 0, method, cell_value_format)
-            sheet.write_number(row, 1, vals["total_amount"], cell_value_format)
-            sheet.write_number(row, 2, vals["transactions"], cell_value_format)
+            sheet.write_number(row, 1, vals['total_amount'], cell_value_format)
+            sheet.write_number(row, 2, vals['transactions'], cell_value_format)
             row += 1
-        sheet.write(row, 0, "淨收入:", cell_value_format_bold)
+        sheet.write(row, 0, '淨收入:', cell_value_format_bold)
         sheet.write(row, 1, total_amount, cell_value_format)
         sheet.write(row, 2, total_transcation, cell_value_format)
 
         row += 2
-        sheet.write(row, 0, "Void單", header_format)
-        sheet.write(row, 1, "Amount", header_format)
-        sheet.write(row, 2, "Quantity", header_format)
+        sheet.write(row, 0, 'Void單', header_format)
+        sheet.write(row, 1, 'Amount', header_format)
+        sheet.write(row, 2, 'Quantity', header_format)
         row += 1
         for method, vals in void_by_method.items():
             sheet.write(row, 0, method, cell_value_format)
-            sheet.write_number(row, 1, vals["amount"], cell_value_format)
-            sheet.write_number(row, 2, vals["quantity"], cell_value_format)
+            sheet.write_number(row, 1, vals['amount'], cell_value_format)
+            sheet.write_number(row, 2, vals['quantity'], cell_value_format)
             row += 1
-        sheet.write(row, 0, "總計:", cell_value_format_bold)
+        sheet.write(row, 0, '總計:', cell_value_format_bold)
         sheet.write_number(row, 1, cancel_order_total, cell_value_format)
         sheet.write_number(row, 2, cancel_qty, cell_value_format)
 
         row += 2
-        sheet.write(row, 0, "咭類兌換", header_format)
-        sheet.write(row, 1, "Amount Redeemed", header_format)
-        sheet.write(row, 2, "Quantity Redeemed", header_format)
+        sheet.write(row, 0, '咭類兌換', header_format)
+        sheet.write(row, 1, 'Amount Redeemed', header_format)
+        sheet.write(row, 2, 'Quantity Redeemed', header_format)
         row += 1
         coupon_total_amount = 0.0
         coupon_total_qty = 0
         for coupon_name, vals in coupon_redemption.items():
             sheet.write(row, 0, coupon_name, cell_value_format)
-            sheet.write_number(row, 1, vals["amount"], cell_value_format)
-            sheet.write_number(row, 2, vals["quantity"], cell_value_format)
-            coupon_total_amount += vals["amount"]
-            coupon_total_qty += vals["quantity"]
+            sheet.write_number(row, 1, vals['amount'], cell_value_format)
+            sheet.write_number(row, 2, vals['quantity'], cell_value_format)
+            coupon_total_amount += vals['amount']
+            coupon_total_qty += vals['quantity']
             row += 1
-        sheet.write(row, 0, "總計:", cell_value_format_bold)
+        sheet.write(row, 0, '總計:', cell_value_format_bold)
         sheet.write_number(row, 1, coupon_total_amount, cell_value_format)
         sheet.write_number(row, 2, coupon_total_qty, cell_value_format)
 
         row += 2
-        sheet.write(row, 0, "Discount", header_format)
-        sheet.write(row, 1, "Amount", header_format)
-        sheet.write(row, 2, "Qty", header_format)
+        sheet.write(row, 0, 'Discount', header_format)
+        sheet.write(row, 1, 'Amount', header_format)
+        sheet.write(row, 2, 'Qty', header_format)
         row += 1
         discount_total_amount = 0.0
         discount_total_qty = 0
         for name, vals in discount_summary.items():
             sheet.write(row, 0, name, cell_value_format)
-            sheet.write_number(row, 1, vals["amount"], cell_value_format)
-            sheet.write_number(row, 2, vals["quantity"], cell_value_format)
-            discount_total_amount += vals["amount"]
-            discount_total_qty += vals["quantity"]
+            sheet.write_number(row, 1, vals['amount'], cell_value_format)
+            sheet.write_number(row, 2, vals['quantity'], cell_value_format)
+            discount_total_amount += vals['amount']
+            discount_total_qty += vals['quantity']
             row += 1
-        sheet.write(row, 0, "總計:", cell_value_format_bold)
+        sheet.write(row, 0, '總計:', cell_value_format_bold)
         sheet.write_number(row, 1, discount_total_amount, cell_value_format)
         sheet.write_number(row, 2, discount_total_qty, cell_value_format)
 
@@ -242,7 +296,11 @@ class SalesReportExcelWizard(models.TransientModel):
         output.seek(0)
         excel_data = output.read()
 
-        filename = f"日結報表(分店) {self.pos.name + ' ' if self.pos else ''}{self.start_date.strftime('%Y-%m-%d')} 至 {self.end_date.strftime('%Y-%m-%d')}.xlsx"
+        filename = '日結報表(分店) {}{} 至 {}.xlsx'.format(
+            (self.pos.name + ' ') if self.pos else '',
+            self.start_date.strftime('%Y-%m-%d'),
+            self.end_date.strftime('%Y-%m-%d'),
+        )
         self.write({
             'file_data': base64.b64encode(excel_data),
             'file_name': filename,
@@ -256,6 +314,7 @@ class SalesReportExcelWizard(models.TransientModel):
         })
         return {
             'type': 'ir.actions.act_url',
-            'url': f"/web/content/?model={self._name}&id={self.id}&field=file_data&filename_field=file_name&download=true",
+            'url': '/web/content/?model={}&id={}&field=file_data&filename_field=file_name&download=true'.format(
+                self._name, self.id),
             'target': 'self',
         }

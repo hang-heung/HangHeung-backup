@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <!--
+        Add a total-quantity row on the printed receipt,
+        directly above the TOTAL line (mirrors BOSS POS 總數量 row).
+    -->
+    <t t-name="hh_pos_cart_qty.OrderReceipt"
+       t-inherit="point_of_sale.OrderReceipt"
+       t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('receipt-total')]" position="before">
+            <div t-if="totalCartQty &gt; 0" class="pos-receipt-amount hh-receipt-total-qty">
+                總數量 / Total Qty
+                <span t-esc="totalCartQty" class="pos-receipt-right-align"/>
+            </div>
+        </xpath>
+    </t>
+</templates>

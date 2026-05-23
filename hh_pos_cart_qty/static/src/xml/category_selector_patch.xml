@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <!--
+        Mark 2: Bold red number at top-right of category button — no circle, clearly visible.
+    -->
+    <t t-name="hh_pos_cart_qty.CategorySelector"
+       t-inherit="point_of_sale.CategorySelector"
+       t-inherit-mode="extension">
+
+        <xpath expr="//button[hasclass('category-button')]" position="attributes">
+            <attribute name="class" add="position-relative" separator=" "/>
+        </xpath>
+
+        <xpath expr="//button[hasclass('category-button')]/span[hasclass('text-wrap-categ')]" position="after">
+            <t t-set="catQty" t-value="getCategoryCartQty(category.id)"/>
+            <span t-if="catQty &gt; 0"
+                  class="hh-cat-qty position-absolute top-0 end-0"
+                  t-esc="catQty"/>
+        </xpath>
+
+    </t>
+</templates>

@@ -253,14 +253,29 @@ class POSShopReportWizard(models.TransientModel):
         }
 
         products = self.env['product.product'].browse(list(result.keys()))
-        cat_by_pid = {}
+        cat_info_by_pid = {}
         for prod in products:
-            cat_names = prod.product_tmpl_id.pos_categ_ids.mapped('name')
-            cat_by_pid[prod.id] = sorted(cat_names)[0] if cat_names else 'zzz'
+            cats = prod.pos_categ_ids.sorted('sequence')
+            cat_info_by_pid[prod.id] = {
+                'seq': cats[0].sequence if cats else 9999,
+                'name': cats[0].name if cats else '',
+                'id': cats[0].id if cats else 0,
+            }
 
         result_list = list(result.values())
-        result_list.sort(key=lambda r: (cat_by_pid.get(r['_product_id'], 'zzz'), r['sku'] or ''))
+        result_list.sort(key=lambda r: (
+            cat_info_by_pid.get(r['_product_id'], {}).get('seq', 9999),
+            cat_info_by_pid.get(r['_product_id'], {}).get('name', ''),
+            r['sku'] or ''
+        ))
+        prev_categ_id = None
         for r in result_list:
+            pid = r['_product_id']
+            info = cat_info_by_pid.get(pid, {'seq': 9999, 'name': '', 'id': 0})
+            r['pos_categ_name'] = info['name'] or '(No Category)'
+            r['pos_categ_id'] = info['id']
+            r['show_categ_header'] = (info['id'] != prev_categ_id)
+            prev_categ_id = info['id']
             r.pop('_product_id', None)
         return result_list
 

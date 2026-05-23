@@ -73,6 +73,11 @@
                             <t t-set="total_discount_amount" t-value="0.0"/>
                             <t t-set="total_final_amount" t-value="0.0"/>
                             <t t-foreach="lines" t-as="line">
+                                <t t-if="line.get('show_categ_header')">
+                                    <tr style="background-color: #D9E1F2; font-weight: bold;">
+                                        <td colspan="15" style="border: 1px solid #999; padding: 3px 6px;"><t t-esc="line.get('pos_categ_name') or '(No Category)'"/></td>
+                                    </tr>
+                                </t>
                                 <t t-set="total_sales_qty" t-value="total_sales_qty + (line.get('sales_qty') or 0)"/>
                                 <t t-set="total_refund_qty" t-value="total_refund_qty + (line.get('sales_refund_qty') or 0)"/>
                                 <t t-set="total_sales_amount" t-value="total_sales_amount + (line.get('sales_amount') or 0.0)"/>

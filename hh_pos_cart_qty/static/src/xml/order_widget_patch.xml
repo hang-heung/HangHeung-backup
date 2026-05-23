@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="hh_pos_cart_qty.OrderWidget"
+       t-inherit="point_of_sale.OrderWidget"
+       t-inherit-mode="extension">
+        <xpath expr="//div[hasclass('order-summary')]/div[hasclass('fs-2')]" position="replace">
+            <div style="display:flex; justify-content:space-between; align-items:center; width:100%; font-size:1.5rem; font-weight:700;">
+                <span>件數 <span class="hh-qty-number" t-esc="totalCartQty"/></span>
+                <span>總計<span class="hh-qty-number total ms-1"
+                          t-esc="formatMonetary(taxTotals.order_sign * taxTotals.order_total, {currencyId: taxTotals.currency_id})"/></span>
+            </div>
+        </xpath>
+    </t>
+</templates>

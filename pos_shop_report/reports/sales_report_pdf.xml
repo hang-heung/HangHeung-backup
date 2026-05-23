@@ -31,23 +31,61 @@
             <main class="page" style="font-family: sans-serif; font-size: 10pt;">
                 <t t-set="d" t-value="docs._aggregate_report_data()"/>
 
-                <h2 style="text-align: center; margin: 0 0 12px 0;">Sales Report</h2>
+                <!-- ══════════════════════════════════════════
+                     HANG HEUNG HEADER
+                     ══════════════════════════════════════════ -->
+                <div style="text-align: center; padding-bottom: 6px; margin-bottom: 10px; border-bottom: 1px solid #aaa;">
 
+                    <!-- Logo -->
+                    <div style="margin-bottom: 3px;">
+                        <t t-if="d.get('hh_logo_b64')">
+                            <img t-att-src="'data:image/png;base64,' + d['hh_logo_b64']"
+                                 style="height: 55px; width: auto;"/>
+                        </t>
+                    </div>
+
+                    <!-- Store address -->
+                    <t t-if="d.get('store_address')">
+                        <div style="font-size: 8.5pt; color: #333; margin-bottom: 1px;">
+                            <t t-esc="d['store_address']"/>
+                        </div>
+                    </t>
+
+                    <!-- Divider -->
+                    <div style="border-top: 1px solid #ccc; margin: 5px auto; width: 60%;"/>
+
+                    <!-- Title -->
+                    <div style="font-size: 14pt; font-weight: bold; letter-spacing: 4px; margin-bottom: 4px;">收款總表</div>
+
+                    <!-- Date -->
+                    <div style="font-size: 8.5pt; margin-bottom: 1px;">
+                        <strong>日期：</strong>
+                        <t t-esc="d.get('start_display') or d.get('start_date') or ''"/>
+                        <t t-if="d.get('end_date') and d.get('end_date') != d.get('start_date')">
+                            &#160;至&#160;
+                            <t t-esc="d.get('end_display') or d.get('end_date') or ''"/>
+                        </t>
+                    </div>
+
+                    <!-- Store code -->
+                    <t t-if="d.get('store_code')">
+                        <div style="font-size: 8.5pt; margin-bottom: 1px;">
+                            <strong>店鋪：</strong>
+                            <t t-esc="'[' + d['store_code'] + '] ' + (d.get('pos_name','').split(' - ',1)[-1].strip() if ' - ' in d.get('pos_name','') else d.get('pos_name',''))"/>
+                        </div>
+                    </t>
+
+                    <!-- Report generated timestamp -->
+                    <div style="font-size: 7.5pt; color: #888; margin-top: 2px;">
+                        報告生成：<t t-esc="d.get('report_generated_hkt') or ''"/>
+                    </div>
+                </div>
+                <!-- ══════════════════ END HEADER ══════════════════ -->
+
+                <!-- Summary info table -->
                 <table style="width: 70%; max-width: 150mm; margin: 0 auto 14px auto; border-collapse: collapse; font-size: 10pt;">
                     <tr>
-                        <td style="border: 1px solid #999; padding: 4px 8px; background: #D9E1F2; width: 40%;"><strong>日期:</strong></td>
-                        <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="d.get('start_date') or ''"/></td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #999; padding: 4px 8px; background: #D9E1F2;"><strong>(日結)時間:</strong></td>
-                        <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="d.get('end_date') or ''"/></td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #999; padding: 4px 8px; background: #D9E1F2;"><strong>分店:</strong></td>
-                        <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="d.get('pos_name') or ''"/></td>
-                    </tr>
-                    <tr>
-                        <td style="border: 1px solid #999; padding: 4px 8px; background: #D9E1F2;"><strong>總計($):</strong></td>
+                        <td style="border: 1px solid #999; padding: 4px 8px; background: #D9E1F2; width: 40%;"><strong>總計($):</strong></td>
                         <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="'%.2f' % (d.get('order_total') or 0.0)"/></td>
                     </tr>
                     <tr>
@@ -56,6 +94,7 @@
                     </tr>
                 </table>
 
+                <!-- Payment summary -->
                 <h4 style="margin: 12px auto 4px auto; width: 80%; max-width: 165mm;">支付方式</h4>
                 <table style="width: 80%; max-width: 165mm; margin: 0 auto 14px auto; border-collapse: collapse; font-size: 9pt;">
                     <colgroup>
@@ -65,9 +104,9 @@
                     </colgroup>
                     <thead style="background: #D9E1F2;">
                         <tr>
-                            <th style="border: 1px solid #999; padding: 4px 8px; text-align: left;">支付方式</th>
-                            <th style="border: 1px solid #999; padding: 4px 8px; text-align: left;">Amount</th>
-                            <th style="border: 1px solid #999; padding: 4px 8px; text-align: left;">Transactions</th>
+                            <th style="border: 1px solid #999; padding: 4px 8px; text-align: left;">支付類別</th>
+                            <th style="border: 1px solid #999; padding: 4px 8px; text-align: left;">金額</th>
+                            <th style="border: 1px solid #999; padding: 4px 8px; text-align: left;">單數</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -83,9 +122,15 @@
                             <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="'%.2f' % (d.get('total_amount') or 0.0)"/></td>
                             <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="d.get('total_transcation') or 0"/></td>
                         </tr>
+                        <tr style="font-weight: bold; background: #f4f4f4;">
+                            <td style="border: 1px solid #999; padding: 4px 8px;">總數:</td>
+                            <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="'%.2f' % (d.get('total_amount') or 0.0)"/></td>
+                            <td style="border: 1px solid #999; padding: 4px 8px;"><t t-esc="d.get('total_transcation') or 0"/></td>
+                        </tr>
                     </tbody>
                 </table>
 
+                <!-- Void section -->
                 <h4 style="margin: 12px auto 4px auto; width: 80%; max-width: 165mm;">Void單</h4>
                 <table style="width: 80%; max-width: 165mm; margin: 0 auto 14px auto; border-collapse: collapse; font-size: 9pt;">
                     <colgroup>
@@ -116,6 +161,7 @@
                     </tbody>
                 </table>
 
+                <!-- Coupon redemption -->
                 <h4 style="margin: 12px auto 4px auto; width: 80%; max-width: 165mm;">咭類兌換</h4>
                 <table style="width: 80%; max-width: 165mm; margin: 0 auto 14px auto; border-collapse: collapse; font-size: 9pt;">
                     <colgroup>
@@ -148,6 +194,7 @@
                     </tbody>
                 </table>
 
+                <!-- Discount -->
                 <h4 style="margin: 12px auto 4px auto; width: 80%; max-width: 165mm;">Discount</h4>
                 <table style="width: 80%; max-width: 165mm; margin: 0 auto 14px auto; border-collapse: collapse; font-size: 9pt;">
                     <colgroup>
@@ -179,6 +226,7 @@
                         </tr>
                     </tbody>
                 </table>
+
             </main>
         </t>
     </template>

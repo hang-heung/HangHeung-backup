@@ -1,0 +1,93 @@
+/* HH POS Cart Qty Badges */
+
+/* =====================================================================
+   CJK FONT FALLBACK
+   sh_pos_theme_responsive loads Roboto/Montserrat (no Chinese glyphs).
+   This virtual font maps CJK unicode ranges to locally-installed system
+   fonts, so Roboto handles Latin while Chinese characters render correctly
+   on macOS (PingFang TC) and Windows (Microsoft JhengHei).
+   ===================================================================== */
+@font-face {
+    font-family: 'HH-CJK';
+    src: local('PingFang TC'),
+         local('Heiti TC'),
+         local('Microsoft JhengHei'),
+         local('Microsoft YaHei'),
+         local('Noto Sans TC'),
+         local('Noto Sans CJK TC'),
+         local('WenQuanYi Micro Hei');
+    unicode-range:
+        U+0020, U+00B7,
+        U+2010-2027, U+2030-205E,
+        U+2E80-2EFF,
+        U+3000-303F,
+        U+3100-312F,
+        U+31C0-31EF,
+        U+3400-4DBF,
+        U+4E00-9FFF,
+        U+A000-A48F,
+        U+F900-FAFF,
+        U+FE10-FE1F,
+        U+FE30-FE6F,
+        U+FF00-FFEF;
+}
+
+/* Apply CJK fallback to the whole POS so product names and receipts
+   both render Chinese correctly */
+.pos, .pos-receipt, .modal, .popup {
+    font-family: 'Roboto', 'Montserrat', 'HH-CJK', sans-serif;
+}
+
+/* =====================================================================
+   DUPLICATE ROW FIX
+   sh_pos_theme_responsive already hides the duplicate .info-list for
+   product-screen and ticket-screen, but MISSES the receipt-screen.
+   The theme's own rules use high-specificity selectors with !important,
+   so we must match that pattern for the receipt context.
+   ===================================================================== */
+
+/* On-screen receipt preview (inside POS receipt-screen) */
+body .pos .pos-content .receipt-screen .orderline .info-list:not(.sh_info_list) {
+    display: none !important;
+}
+
+/* Printed receipt and receipt rendered outside the main POS content area */
+.pos-receipt .orderline .info-list:not(.sh_info_list) {
+    display: none !important;
+}
+
+/* =====================================================================
+   SCREEN: Mark 1 — total qty + price in the order summary footer
+   ===================================================================== */
+.hh-qty-number {
+    color: var(--hh-pos-primary, #ff0000);
+}
+
+/* =====================================================================
+   SCREEN: Mark 2 — per-category qty counter on category buttons
+   ===================================================================== */
+.hh-cat-qty {
+    font-size: 1.15rem;
+    font-weight: 900;
+    color: var(--hh-pos-primary, #ff0000);
+    line-height: 1;
+    top: 3px !important;
+    right: 5px !important;
+    pointer-events: none;
+    z-index: 1;
+    text-shadow: 0 0 4px rgba(255, 255, 255, 1);
+}
+
+/* =====================================================================
+   SCREEN: Mark 3 — product card cart qty badge
+   ===================================================================== */
+.product-cart-qty {
+    color: var(--hh-pos-primary, #ff0000) !important;
+}
+
+/* =====================================================================
+   RECEIPT: Total qty row above TOTAL line
+   ===================================================================== */
+.hh-receipt-total-qty {
+    font-weight: 600;
+}

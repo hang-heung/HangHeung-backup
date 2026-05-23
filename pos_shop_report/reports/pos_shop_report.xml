@@ -67,6 +67,11 @@
               <t t-set="total_discount_amount" t-value="sum([line['discount_amount'] for line in docs.report_lines])"/>
               <t t-set="total_final_amount" t-value="sum([line['final_amount'] for line in docs.report_lines])"/>
               <t t-foreach="docs.report_lines" t-as="line">
+                <t t-if="line.get('show_categ_header')">
+                  <tr style="background-color: #D9E1F2; font-weight: bold;">
+                    <td colspan="11" style="padding: 3px 6px;"><t t-esc="line.get('pos_categ_name') or '(No Category)'"/></td>
+                  </tr>
+                </t>
                 <tr>
                   <td><t t-esc="line['sku']"/></td>
                   <td><t t-esc="line['name']"/></td>
