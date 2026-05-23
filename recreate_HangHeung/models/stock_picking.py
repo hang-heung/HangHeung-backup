@@ -326,6 +326,43 @@ class StockPicking(models.Model):
                     }
         return res
 
+    # HH-CUSTOM: for outgoing deliveries, auto-lookup the inter-company
+    # PO ref and receipt on the customer's side.
+    # Walks the origin chain from the end to find the first segment that
+    # has a linked incoming receipt — handles 嫁囍單 chains where the last
+    # segment is a SO (HM/S00136) rather than the PO (HM/P02544).
+    intercompany_po_ref = fields.Char(
+        string='Inter-company PO Ref',
+        compute='_compute_intercompany_refs',
+    )
+    intercompany_receipt_name = fields.Char(
+        string='Inter-company Receipt',
+        compute='_compute_intercompany_refs',
+    )
+
+    @api.depends('full_origin_chain', 'origin', 'picking_type_id')
+    def _compute_intercompany_refs(self):
+        for picking in self:
+            po_ref = ''
+            receipt_name = ''
+            if picking.picking_type_id.code == 'outgoing':
+                source = picking.full_origin_chain or picking.origin or ''
+                segments = [s.strip() for s in source.split('-') if s.strip()]
+                # Walk from the end: find the first segment that has a
+                # linked incoming receipt (skips SO segments like HM/S00136)
+                for seg in reversed(segments):
+                    receipt = self.env['stock.picking'].sudo().with_company(False).search([
+                        ('origin', '=', seg),
+                        ('picking_type_id.code', '=', 'incoming'),
+                        ('id', '!=', picking.id),
+                    ], limit=1)
+                    if receipt:
+                        po_ref = seg
+                        receipt_name = receipt.name
+                        break
+            picking.intercompany_po_ref = po_ref
+            picking.intercompany_receipt_name = receipt_name
+
     full_origin_chain = fields.Char(
         string="Origin Chain",
         compute="_compute_full_origin_chain",

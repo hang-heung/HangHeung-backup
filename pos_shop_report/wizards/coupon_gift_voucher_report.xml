@@ -3,7 +3,7 @@
         <field name="name">coupon.gift.voucher.report.wizard.form</field>
         <field name="model">coupon.gift.voucher.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="Coupon Gift Voucher Report">
+            <form string="禮券銷售及兌換報表">
                 <group>
                     <field name="date_start"/>
                     <field name="date_end"/>

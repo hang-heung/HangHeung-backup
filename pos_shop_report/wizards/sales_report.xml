@@ -4,7 +4,7 @@
         <field name="name">sales.report.excel.wizard.form</field>
         <field name="model">sales.report.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Sales Report">
+            <form string="日結報表(分店)">
                 <group>
                     <group>
                         <field name="start_date"/>

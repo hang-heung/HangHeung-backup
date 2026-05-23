@@ -3,7 +3,7 @@
         <field name="name">time.period.sales.report.individual.form</field>
         <field name="model">time.period.sales.report.individual</field>
         <field name="arch" type="xml">
-            <form string="Time Period Sales Report (Individual Store)">
+            <form string="時段銷售報告 (分店)">
                 <group>
                     <field name="shop_id"/>
                     <field name="from_date"/>

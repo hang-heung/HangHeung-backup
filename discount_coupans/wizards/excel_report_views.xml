@@ -4,7 +4,7 @@
         <field name="name">coupon.activated.excel.wizard.form</field>
         <field name="model">coupon.activated.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Download Activated Coupons">
+            <form string="已生效禮券">
                 <group>
                     <div>Download Activated Coupons report</div>
                     <field name="from_date"
@@ -31,7 +31,7 @@
         <field name="name">coupon.inactivated.excel.wizard.form</field>
         <field name="model">coupon.inactivated.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Download Inactivated Coupons">
+            <form string="已失效禮券">
                 <group>
                     <div>Download Inactivated Coupons report</div>
                     <field name="from_date"
@@ -58,7 +58,7 @@
         <field name="name">coupon.used.excel.wizard.form</field>
         <field name="model">coupon.used.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Download Used Coupons">
+            <form string="禮券兌換報告 (按舖)">
                 <group>
                     <div>Download Used Coupons report</div>
                     <field name="from_date"
@@ -85,7 +85,7 @@
         <field name="name">coupon.transfer.excel.wizard.form</field>
         <field name="model">coupon.transfer.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Download Transfer Coupons">
+            <form string="禮券到舖表">
                 <group>
                     <div>Download Transfer Coupons report</div>
                     <field name="shop_ids" widget="many2many_tags"/>
@@ -108,7 +108,7 @@
         <field name="name">coupon.summary.excel.wizard.form</field>
         <field name="model">coupon.summary.excel.wizard</field>
         <field name="arch" type="xml">
-            <form string="Coupon Summary Report">
+            <form string="禮券生效及兌換報表">
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>
@@ -129,7 +129,7 @@
     </record>
 
     <record id="action_coupon_excel" model="ir.actions.act_window">
-        <field name="name">已生效禮劵</field>
+        <field name="name">已生效禮券</field>
         <field name="res_model">coupon.activated.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_activated_excel_wizard"/>
@@ -137,7 +137,7 @@
     </record>
 
     <record id="action_coupon_inactivated_excel" model="ir.actions.act_window">
-        <field name="name">已失效禮劵</field>
+        <field name="name">已失效禮券</field>
         <field name="res_model">coupon.inactivated.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_inactivated_excel_wizard"/>
@@ -145,7 +145,7 @@
     </record>
 
     <record id="action_coupon_used_excel" model="ir.actions.act_window">
-        <field name="name">禮劵兌換報告 (按舖)</field>
+        <field name="name">禮券兌換報告 (按舖)</field>
         <field name="res_model">coupon.used.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_used_excel_wizard"/>

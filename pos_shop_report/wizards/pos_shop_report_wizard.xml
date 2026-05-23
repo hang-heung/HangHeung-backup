@@ -3,7 +3,7 @@
         <field name="name">pos.shop.report.wizard.form</field>
         <field name="model">pos.shop.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="POS Shop Report">
+            <form string="分店庫存及銷售報告">
                 <group>
                     <field name="shop_id"/>
                     <field name="date_start"/>

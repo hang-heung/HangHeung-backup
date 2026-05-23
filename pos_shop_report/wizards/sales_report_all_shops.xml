@@ -5,7 +5,7 @@
         <field name="name">sales.report.all.shops.wizard.form</field>
         <field name="model">sales.report.all.shops.wizard</field>
         <field name="arch" type="xml">
-            <form string="Sales Report All Shops">
+            <form string="日結報表(全線)">
                 <group>
                     <group>
                         <field name="start_date"/>

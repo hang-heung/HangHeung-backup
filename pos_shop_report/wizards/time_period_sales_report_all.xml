@@ -3,7 +3,7 @@
         <field name="name">time.period.sales.report.all.form</field>
         <field name="model">time.period.sales.report.all</field>
         <field name="arch" type="xml">
-            <form string="Time Period Sales Report (All Store)">
+            <form string="時段銷售報告 (全線)">
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>

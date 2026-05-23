@@ -3,7 +3,7 @@
         <field name="name">product.sales.detail.report.wizard.form</field>
         <field name="model">product.sales.detail.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="Time Period Sales Report (Individual Store)">
+            <form string="產品銷售明細報告 (分店)">
                 <group>
                     <field name="store_id"/>
                     <field name="from_date"/>

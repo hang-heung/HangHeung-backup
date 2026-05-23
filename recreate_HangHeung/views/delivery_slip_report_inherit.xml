@@ -69,10 +69,13 @@
                 </div>
                 <div t-if="o.origin" style="display: inline-block; width: 30%;" name="div_sched_date">
                     <strong style="color: #AF8489">Customer Reference:</strong>
-                    <!-- Determine last segment from full_origin_chain if available -->
-		            <t t-set="source" t-value="o.full_origin_chain or o.origin or ''"/>
-		            <t t-set="last_order_number" t-value="source.split('-')[-1].strip()"/>
-                    <p t-esc="last_order_number" class="m-0"/>
+                    <t t-set="source" t-value="o.full_origin_chain or o.origin or ''"/>
+                    <t t-set="chain_last" t-value="source.split('-')[-1].strip()"/>
+                    <t t-set="po_ref" t-value="o.intercompany_po_ref or ''"/>
+                    <t t-set="receipt_ref" t-value="o.intercompany_receipt_name or ''"/>
+                    <p class="m-0">
+                        <t t-if="po_ref and receipt_ref">採購單<t t-esc="po_ref"/><br/>收貨單<t t-esc="receipt_ref"/></t><t t-elif="chain_last"><t t-esc="chain_last"/></t>
+                    </p>
                 </div>
             </div>
             <!-- HH-CUSTOM: 嫁囍單 / B2B單 isolation flags carried from the
@@ -223,6 +226,24 @@
             <td>
                 <span t-esc="move_line.product_id.default_code or ''"/>
             </td>
+        </xpath>
+    </template>
+
+
+    <!-- HH-CUSTOM: add Customer Reference section to Pick Slip -->
+    <template id="hh_report_picking_inherit" inherit_id="stock.report_picking">
+        <xpath expr="//div[@id='informations']/div[@name='div_sched_date']" position="after">
+            <div t-if="o.origin" class="col" name="div_customer_ref">
+                <t t-set="source" t-value="o.full_origin_chain or o.origin or ''"/>
+                <t t-set="chain_last" t-value="source.split('-')[-1].strip()"/>
+                <t t-set="po_ref" t-value="o.intercompany_po_ref or ''"/>
+                <t t-set="receipt_ref" t-value="o.intercompany_receipt_name or ''"/>
+                <strong style="color: #AF8489">Customer Reference</strong>
+                <div>
+                    <t t-if="po_ref and receipt_ref">採購單<t t-esc="po_ref"/><br/>收貨單<t t-esc="receipt_ref"/></t>
+                    <t t-elif="chain_last"><t t-esc="chain_last"/></t>
+                </div>
+            </div>
         </xpath>
     </template>
 

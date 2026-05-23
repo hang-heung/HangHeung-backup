@@ -3,7 +3,7 @@
         <field name="name">product.sale.all.shop.report.wizard.form</field>
         <field name="model">product.sale.all.shop.report.wizard</field>
         <field name="arch" type="xml">
-            <form string="POS Shop Report">
+            <form string="產品銷售明細報告 (全線)">
                 <group>
                     <field name="from_date"/>
                     <field name="to_date"/>

@@ -4,7 +4,7 @@
         <field name="name">daily.product.sales.inventory.report.form</field>
         <field name="model">daily.product.sales.inventory.report</field>
         <field name="arch" type="xml">
-            <form string="POS Shop Report">
+            <form string="貨品銷售及庫存報表">
                 <group>
                     <field name="shop_id"/>
                     <field name="date_start"/>
