@@ -18,7 +18,7 @@
     </record>
 
     <record id="action_pos_shop_store_transaction_report_wizard" model="ir.actions.act_window">
-        <field name="name">Store Transaction Report</field>
+        <field name="name">分店交易明細</field>
         <field name="res_model">pos.shop.store.transaction.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_pos_shop_store_transaction_report_wizard"/>

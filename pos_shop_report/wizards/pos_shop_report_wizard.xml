@@ -18,7 +18,7 @@
     </record>
 
     <record id="action_pos_shop_report_wizard" model="ir.actions.act_window">
-        <field name="name">POS Shop Report</field>
+        <field name="name">分店庫存及銷售報告</field>
         <field name="res_model">pos.shop.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_pos_shop_report_wizard"/>

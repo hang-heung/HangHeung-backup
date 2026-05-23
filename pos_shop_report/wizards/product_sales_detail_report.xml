@@ -17,7 +17,7 @@
         </field>
     </record>
     <record id="action_product_sales_detail_report_wizard" model="ir.actions.act_window">
-        <field name="name">Product Sales Detail Report (Individual Store)</field>
+        <field name="name">產品銷售明細報告 (分店)</field>
         <field name="res_model">product.sales.detail.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_product_sales_detail_report_wizard_form"/>

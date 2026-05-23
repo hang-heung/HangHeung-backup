@@ -24,7 +24,7 @@
     </record>
 
     <record id="action_sales_report_all_shops_wizard" model="ir.actions.act_window">
-        <field name="name">Sales Report All Shops</field>
+        <field name="name">日結報表(全線)</field>
         <field name="res_model">sales.report.all.shops.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_sales_report_all_shops_wizard"/>

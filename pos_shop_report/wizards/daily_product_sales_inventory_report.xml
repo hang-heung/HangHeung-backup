@@ -20,7 +20,7 @@
     </record>
 
     <record id="action_daily_product_sales_inventory_report" model="ir.actions.act_window">
-        <field name="name">Daily Product Sales and Inventory Report</field>
+        <field name="name">貨品銷售及庫存報表</field>
         <field name="res_model">daily.product.sales.inventory.report</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_daily_product_sales_inventory_report_wizard"/>

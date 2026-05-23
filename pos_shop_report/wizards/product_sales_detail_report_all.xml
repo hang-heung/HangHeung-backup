@@ -17,7 +17,7 @@
     </record>
 
     <record id="action_product_sale_all_shop_report" model="ir.actions.act_window">
-        <field name="name">Product Sales Detail Report (All Stores)</field>
+        <field name="name">產品銷售明細報告 (全線)</field>
         <field name="res_model">product.sale.all.shop.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_product_sale_all_shop_report"/>

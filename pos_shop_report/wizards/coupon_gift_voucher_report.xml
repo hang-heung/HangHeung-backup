@@ -17,7 +17,7 @@
     </record>
 
     <record id="action_coupon_gift_voucher_report_wizard" model="ir.actions.act_window">
-        <field name="name">Coupon Gift Voucher Report</field>
+        <field name="name">禮券銷售及兌換報表</field>
         <field name="res_model">coupon.gift.voucher.report.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="coupon_gift_voucher_report_wizard"/>

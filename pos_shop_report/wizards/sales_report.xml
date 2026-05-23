@@ -24,7 +24,7 @@
     </record>
 
     <record id="action_sales_report_excel" model="ir.actions.act_window">
-        <field name="name">Sales Report Excel</field>
+        <field name="name">日結報表(分店)</field>
         <field name="res_model">sales.report.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_sales_report_excel_wizard"/>

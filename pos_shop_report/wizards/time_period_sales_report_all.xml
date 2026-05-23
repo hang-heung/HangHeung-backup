@@ -16,7 +16,7 @@
         </field>
     </record>
     <record id="action_time_period_sales_report_all" model="ir.actions.act_window">
-        <field name="name">Time Period Sales Report (All Store)</field>
+        <field name="name">時段銷售報告 (全線)</field>
         <field name="res_model">time.period.sales.report.all</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_time_period_sales_report_all_form"/>

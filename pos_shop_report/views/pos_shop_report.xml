@@ -1,54 +1,73 @@
 <odoo>
-    <menuitem id="menu_pos_config_shop_report"
-              name="POS Shop Report"
+    <!-- Report subcategory groups — defined here so upgrades own/maintain them -->
+    <menuitem id="menu_hh_report_branch"
+              name="Branch Reports"
               parent="point_of_sale.menu_point_rep"
-              sequence="90" action="pos_shop_report.action_pos_shop_report_wizard"/>
+              sequence="2"/>
 
+    <menuitem id="menu_hh_report_hq"
+              name="HQ Reports"
+              parent="point_of_sale.menu_point_rep"
+              sequence="3"/>
+
+    <!-- 分店用: branch-level reports -->
     <menuitem id="menu_sales_report"
               name="Sales Report"
-              parent="point_of_sale.menu_point_rep"
-              sequence="90" action="action_sales_report_excel"/>
-
-
-    <menuitem id="menu_sales_report_all_shops"
-              name="Sales Report All Shops"
-              parent="point_of_sale.menu_point_rep"
-              sequence="90"
-              action="action_sales_report_all_shops_wizard"
-              groups="base.group_system,recreate_HangHeung.group_sales_user,recreate_HangHeung.group_non_sales_user"/>
-
-    <menuitem id="menu_product_sales_detail_report_wizard"
-              name="Product Sales Detail Report (Individual Store)"
-              parent="point_of_sale.menu_point_rep"
-              sequence="91" action="pos_shop_report.action_product_sales_detail_report_wizard"/>
-
-    <menuitem id="menu_product_sale_all_shop_report"
-              name="Product Sales Detail Report (All Store)"
-              parent="point_of_sale.menu_point_rep"
-              sequence="92" action="pos_shop_report.action_product_sale_all_shop_report"/>
-
-    <menuitem id="menu_time_period_sales_report_individual"
-              name="Time Period Sales Report (Individual Store)"
-              parent="point_of_sale.menu_point_rep"
-              sequence="93" action="pos_shop_report.action_time_period_sales_report_individual"/>
-
-    <menuitem id="menu_time_period_sales_report_all"
-              name="Time Period Sales Report (All Store)"
-              parent="point_of_sale.menu_point_rep"
-              sequence="94" action="pos_shop_report.action_time_period_sales_report_all"/>
+              parent="pos_shop_report.menu_hh_report_branch"
+              sequence="1" action="action_sales_report_excel"/>
 
     <menuitem id="menu_daily_product_sales_inventory_report"
               name="Daily Product Sales and Inventory Report"
-              parent="point_of_sale.menu_point_rep"
-              sequence="95" action="pos_shop_report.action_daily_product_sales_inventory_report"/>
+              parent="pos_shop_report.menu_hh_report_branch"
+              sequence="2" action="pos_shop_report.action_daily_product_sales_inventory_report"/>
+
+    <!-- 後台用: HQ/backend reports -->
+    <!-- Override point_of_sale core menu to keep 銷售明細 under 後台用 -->
+    <record model="ir.ui.menu" id="point_of_sale.menu_report_order_details">
+        <field name="parent_id" ref="pos_shop_report.menu_hh_report_hq"/>
+        <field name="sequence">1</field>
+    </record>
+
+    <menuitem id="menu_sales_report_all_shops"
+              name="Sales Report All Shops"
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="2"
+              action="action_sales_report_all_shops_wizard"
+              groups="base.group_system,recreate_HangHeung.group_sales_user,recreate_HangHeung.group_non_sales_user"/>
+
+    <menuitem id="menu_pos_config_shop_report"
+              name="POS Shop Report"
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="3" action="pos_shop_report.action_pos_shop_report_wizard"/>
+
+    <menuitem id="menu_product_sales_detail_report_wizard"
+              name="Product Sales Detail Report (Individual Store)"
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="4" action="pos_shop_report.action_product_sales_detail_report_wizard"/>
+
+    <menuitem id="menu_product_sale_all_shop_report"
+              name="Product Sales Detail Report (All Store)"
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="5" action="pos_shop_report.action_product_sale_all_shop_report"/>
+
+    <menuitem id="menu_time_period_sales_report_individual"
+              name="Time Period Sales Report (Individual Store)"
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="6" action="pos_shop_report.action_time_period_sales_report_individual"/>
+
+    <menuitem id="menu_time_period_sales_report_all"
+              name="Time Period Sales Report (All Store)"
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="7" action="pos_shop_report.action_time_period_sales_report_all"/>
 
     <menuitem id="menu_pos_shop_store_transaction_report_wizard"
               name="Store Transaction Report"
-              parent="point_of_sale.menu_point_rep"
-              sequence="96" action="pos_shop_report.action_pos_shop_store_transaction_report_wizard"/>
+              parent="pos_shop_report.menu_hh_report_hq"
+              sequence="9" action="pos_shop_report.action_pos_shop_store_transaction_report_wizard"/>
 
+    <!-- Gift voucher report lives under the discount_coupans 禮劵 category -->
     <menuitem id="menu_coupon_gift_voucher_report"
               name="Coupon Gift Voucher Report"
-              parent="point_of_sale.menu_point_rep"
-              sequence="97" action="pos_shop_report.action_coupon_gift_voucher_report_wizard"/>
+              parent="discount_coupans.menu_coupon_excel_report"
+              sequence="6" action="pos_shop_report.action_coupon_gift_voucher_report_wizard"/>
 </odoo>

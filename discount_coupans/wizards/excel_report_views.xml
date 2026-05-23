@@ -129,7 +129,7 @@
     </record>
 
     <record id="action_coupon_excel" model="ir.actions.act_window">
-        <field name="name">Coupon Excel Report</field>
+        <field name="name">已生效禮劵</field>
         <field name="res_model">coupon.activated.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_activated_excel_wizard"/>
@@ -137,7 +137,7 @@
     </record>
 
     <record id="action_coupon_inactivated_excel" model="ir.actions.act_window">
-        <field name="name">Inactivated Coupons</field>
+        <field name="name">已失效禮劵</field>
         <field name="res_model">coupon.inactivated.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_inactivated_excel_wizard"/>
@@ -145,7 +145,7 @@
     </record>
 
     <record id="action_coupon_used_excel" model="ir.actions.act_window">
-        <field name="name">Used Coupons</field>
+        <field name="name">禮劵兌換報告 (按舖)</field>
         <field name="res_model">coupon.used.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_used_excel_wizard"/>
@@ -153,7 +153,7 @@
     </record>
 
      <record id="action_coupon_transfer_excel" model="ir.actions.act_window">
-        <field name="name">Transfer Coupons</field>
+        <field name="name">禮券到舖表</field>
         <field name="res_model">coupon.transfer.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_coupon_transfer_excel_wizard"/>
@@ -161,7 +161,7 @@
     </record>
 
     <record id="action_coupon_summary_excel_wizard" model="ir.actions.act_window">
-        <field name="name">Coupon Summary Report</field>
+        <field name="name">禮券生效及兌換報表</field>
         <field name="res_model">coupon.summary.excel.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -170,7 +170,7 @@
     <menuitem id="menu_coupon_excel_report"
               name="Coupon Report"
               parent="point_of_sale.menu_point_rep"
-              sequence="25"/>
+              sequence="4"/>
 
     <menuitem id="menu_coupon_activated"
               name="Coupon Made (Activated)"

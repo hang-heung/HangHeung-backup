@@ -17,7 +17,7 @@
         </field>
     </record>
     <record id="action_time_period_sales_report_individual" model="ir.actions.act_window">
-        <field name="name">Time Period Sales Report (Individual Store)</field>
+        <field name="name">時段銷售報告 (分店)</field>
         <field name="res_model">time.period.sales.report.individual</field>
         <field name="view_mode">form</field>
         <field name="view_id" ref="view_time_period_sales_report_individual_form"/>
