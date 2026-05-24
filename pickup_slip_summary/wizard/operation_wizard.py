@@ -43,6 +43,7 @@ class ReportInventoryWizard(models.TransientModel):
         product_set = set()
         report_data = {}
         product_uom_map = {}
+        product_ref_map = {}
 
         if self.partner_id:
             partner_names = [extract_code(self.partner_id.name)]
@@ -68,6 +69,7 @@ class ReportInventoryWizard(models.TransientModel):
 
                 product_set.add(product_key)
                 product_uom_map[product_key] = uom
+                product_ref_map[product_key] = product.default_code or ''
                 report_data.setdefault(product_key, {}).setdefault(partner_code, 0)
                 report_data[product_key][partner_code] += move.product_uom_qty
 
@@ -83,25 +85,28 @@ class ReportInventoryWizard(models.TransientModel):
 
         sheet.set_column(0, 0, 30)  # Category
         sheet.set_column(1, 1, 20)  # Item Code
-        sheet.set_column(2, 2, 40)  # Item Name
-        sheet.set_column(3, 3, 10)  # UNIT
-        for i in range(4, 4 + len(partner_names)):
+        sheet.set_column(2, 2, 20)  # Odoo Code
+        sheet.set_column(3, 3, 40)  # Item Name
+        sheet.set_column(4, 4, 10)  # UNIT
+        for i in range(5, 5 + len(partner_names)):
             sheet.set_column(i, i, 20)
 
         header_format = workbook.add_format({'bold': True, 'align': 'center'})
 
         sheet.write(0, 0, '')  # Category
         sheet.write(0, 1, '')  # Item Code
-        sheet.write(0, 2, '')  # Item Name
-        sheet.write(0, 3, '', header_format)  # UNIT
-        for col, partner in enumerate(partner_names, start=4):
+        sheet.write(0, 2, '')  # Odoo Code
+        sheet.write(0, 3, '')  # Item Name
+        sheet.write(0, 4, '', header_format)  # UNIT
+        for col, partner in enumerate(partner_names, start=5):
             sheet.write(0, col, partner, header_format)
 
         sheet.write(1, 0, 'Category', header_format)
         sheet.write(1, 1, 'Item Code', header_format)
-        sheet.write(1, 2, 'Item Name', header_format)
-        sheet.write(1, 3, 'UNIT', header_format)
-        for col in range(4, 4 + len(partner_names)):
+        sheet.write(1, 2, 'Odoo Code', header_format)
+        sheet.write(1, 3, 'Item Name', header_format)
+        sheet.write(1, 4, 'UNIT', header_format)
+        for col in range(5, 5 + len(partner_names)):
             sheet.write(1, col, 'UNIT', header_format)
 
         total_by_partner = {partner: 0 for partner in partner_names}
@@ -109,20 +114,22 @@ class ReportInventoryWizard(models.TransientModel):
 
         for category, item_code, product_name in sorted_products:
             uom = product_uom_map.get((category, item_code, product_name), '')
+            odoo_code = product_ref_map.get((category, item_code, product_name), '')
             sheet.write(row, 0, category)
             sheet.write(row, 1, item_code)
-            sheet.write(row, 2, product_name)
-            sheet.write(row, 3, uom)
+            sheet.write(row, 2, odoo_code)
+            sheet.write(row, 3, product_name)
+            sheet.write(row, 4, uom)
 
-            for col, partner in enumerate(partner_names, start=4):
+            for col, partner in enumerate(partner_names, start=5):
                 qty = report_data.get((category, item_code, product_name), {}).get(partner, 0)
                 sheet.write(row, col, qty)
                 total_by_partner[partner] += qty
 
             row += 1
 
-        sheet.write(row, 3, 'Total', header_format)
-        for col, partner in enumerate(partner_names, start=4):
+        sheet.write(row, 4, 'Total', header_format)
+        for col, partner in enumerate(partner_names, start=5):
             sheet.write(row, col, total_by_partner[partner], header_format)
 
         workbook.close()

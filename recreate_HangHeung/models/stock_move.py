@@ -48,7 +48,7 @@ class StockMove(models.Model):
             self.env.context.get('hh_pos_protect_hoymay_pickings')
             and 'product_uom_qty' in vals
         ):
-            protected = self.filtered(lambda m: _is_hoymay_so_picking(m.picking_id))
+            protected = self.filtered(lambda m: _is_hoymay_so_picking(m.sudo().picking_id))
             unprotected = self - protected
             other_vals = {k: v for k, v in vals.items() if k != 'product_uom_qty'}
             res = True

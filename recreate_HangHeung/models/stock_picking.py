@@ -176,10 +176,10 @@ class StockPicking(models.Model):
         # payment-only in our pre-order workflow; the goods still need
         # to flow through the warehouse picking chain.
         if self.env.context.get('hh_pos_protect_hoymay_pickings'):
-            keep = self.filtered(
+            keep_ids = set(self.sudo().filtered(
                 lambda p: p.company_id.id == 1 and (p.origin or '').startswith('HM/')
-            )
-            return (self - keep).action_cancel()
+            ).ids)
+            return (self - self.browse(keep_ids)).action_cancel()
         return super().action_cancel()
 
     def _find_related_hh_outgoing(self):
