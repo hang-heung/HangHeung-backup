@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="ir_cron_prune_stale_editing" model="ir.cron">
+        <field name="name">HH: prune stale concurrent-editing rows</field>
+        <field name="model_id" ref="model_hh_concurrent_editing"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_prune_stale()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

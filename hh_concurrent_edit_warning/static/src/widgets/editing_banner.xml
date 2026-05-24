@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="hh_concurrent_edit_warning.EditingBanner">
+        <div t-if="visible" class="o_hh_editing_banner alert alert-warning d-flex align-items-center mb-2 mx-3" role="alert">
+            <i class="fa fa-exclamation-triangle me-2"/>
+            <span t-esc="label"/>
+        </div>
+    </t>
+</templates>

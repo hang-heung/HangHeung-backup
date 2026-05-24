@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_order_form_inherit_hh_editing" model="ir.ui.view">
+        <field name="name">sale.order.form.hh.editing.banner</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet" position="before">
+                <widget name="hh_editing_banner"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
