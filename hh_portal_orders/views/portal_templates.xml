@@ -111,7 +111,6 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>POS Category</th>
                                 <th>Internal Reference</th>
                                 <th>Old Item Code</th>
                                 <th>Name</th>
@@ -120,27 +119,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-foreach="products" t-as="p">
-                                <tr>
-                                    <td>
-                                        <t t-set="cats" t-value="p.product_tmpl_id.pos_categ_ids.mapped('name')"/>
-                                        <t t-esc="cats[0] if cats else ''"/>
-                                    </td>
-                                    <td><t t-esc="p.default_code or ''"/></td>
-                                    <td><t t-esc="p.old_item_number or ''"/></td>
-                                    <td><t t-esc="p.name"/></td>
-                                    <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
-                                    <td>
-                                        <input type="number" min="0" step="any"
-                                               t-attf-name="qty_{{p.id}}"
-                                               class="form-control text-end"
-                                               placeholder="0"/>
+                            <t t-foreach="grouped_products" t-as="group">
+                                <tr class="table-secondary">
+                                    <td colspan="5" class="fw-bold" style="background-color: #E7EAEF;">
+                                        <t t-esc="group[0]"/>
                                     </td>
                                 </tr>
+                                <t t-foreach="group[1]" t-as="p">
+                                    <tr>
+                                        <td><t t-esc="p.default_code or ''"/></td>
+                                        <td><t t-esc="p.old_item_number or ''"/></td>
+                                        <td><t t-esc="p.name"/></td>
+                                        <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
+                                        <td>
+                                            <input type="number" min="0" step="any"
+                                                   t-attf-name="qty_{{p.id}}"
+                                                   class="form-control text-end"
+                                                   placeholder="0"/>
+                                        </td>
+                                    </tr>
+                                </t>
                             </t>
-                            <t t-if="not products">
+                            <t t-if="not grouped_products">
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="5" class="text-center text-muted py-4">
                                         產品列表為空 / No products configured for your account.
                                     </td>
                                 </tr>
@@ -150,7 +152,7 @@
 
                     <div class="d-flex justify-content-between my-4">
                         <a href="/my" class="btn btn-outline-secondary">取消 / Cancel</a>
-                        <button type="submit" class="btn btn-primary btn-lg" t-if="products">
+                        <button type="submit" class="btn btn-primary btn-lg" t-if="grouped_products">
                             提交 / Submit
                         </button>
                     </div>
@@ -229,7 +231,6 @@
                     <table class="table table-bordered table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>POS Category</th>
                                 <th>Internal Reference</th>
                                 <th>Old Item Code</th>
                                 <th>Name</th>
@@ -238,27 +239,30 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <t t-foreach="products" t-as="p">
-                                <tr>
-                                    <td>
-                                        <t t-set="cats" t-value="p.product_tmpl_id.pos_categ_ids.mapped('name')"/>
-                                        <t t-esc="cats[0] if cats else ''"/>
-                                    </td>
-                                    <td><t t-esc="p.default_code or ''"/></td>
-                                    <td><t t-esc="p.old_item_number or ''"/></td>
-                                    <td><t t-esc="p.name"/></td>
-                                    <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
-                                    <td>
-                                        <input type="number" min="0" step="any"
-                                               t-attf-name="qty_{{p.id}}"
-                                               class="form-control text-end"
-                                               placeholder="0"/>
+                            <t t-foreach="grouped_products" t-as="group">
+                                <tr class="table-secondary">
+                                    <td colspan="5" class="fw-bold" style="background-color: #E7EAEF;">
+                                        <t t-esc="group[0]"/>
                                     </td>
                                 </tr>
+                                <t t-foreach="group[1]" t-as="p">
+                                    <tr>
+                                        <td><t t-esc="p.default_code or ''"/></td>
+                                        <td><t t-esc="p.old_item_number or ''"/></td>
+                                        <td><t t-esc="p.name"/></td>
+                                        <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
+                                        <td>
+                                            <input type="number" min="0" step="any"
+                                                   t-attf-name="qty_{{p.id}}"
+                                                   class="form-control text-end"
+                                                   placeholder="0"/>
+                                        </td>
+                                    </tr>
+                                </t>
                             </t>
-                            <t t-if="not products">
+                            <t t-if="not grouped_products">
                                 <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
+                                    <td colspan="5" class="text-center text-muted py-4">
                                         產品列表為空 / No products configured for your account.
                                     </td>
                                 </tr>
@@ -268,7 +272,7 @@
 
                     <div class="d-flex justify-content-between my-4">
                         <a href="/my" class="btn btn-outline-secondary">取消 / Cancel</a>
-                        <button type="submit" class="btn btn-primary btn-lg" t-if="products">
+                        <button type="submit" class="btn btn-primary btn-lg" t-if="grouped_products">
                             提交 / Submit
                         </button>
                     </div>

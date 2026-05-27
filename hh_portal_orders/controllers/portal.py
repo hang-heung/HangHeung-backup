@@ -37,6 +37,27 @@ class HHPortalOrders(CustomerPortal):
             return (cat, p.default_code or '', p.name or '')
         return products.sorted(key)
 
+    def _grouped_products(self, products):
+        """Group + sort products by POS category name. Returns a list of
+        (category_name, [products]) tuples ready for the template's
+        category-header layout. Products without any pos_categ_ids are
+        grouped under '其他' / 'Uncategorised' and shown last.
+        """
+        UNCATEGORISED = '其他 / Uncategorised'
+        groups = {}
+        for p in self._sorted_products(products):
+            cats = p.product_tmpl_id.pos_categ_ids.mapped('name')
+            label = sorted(cats)[0] if cats else UNCATEGORISED
+            groups.setdefault(label, []).append(p)
+        # Categorised groups first (alpha), uncategorised last
+        ordered = sorted(
+            ((k, v) for k, v in groups.items() if k != UNCATEGORISED),
+            key=lambda kv: (kv[0] or '').lower(),
+        )
+        if UNCATEGORISED in groups:
+            ordered.append((UNCATEGORISED, groups[UNCATEGORISED]))
+        return ordered
+
     # ------------------------------------------------------------------
     # /my/upload-sales (上載購物紀錄)
     # ------------------------------------------------------------------
@@ -52,6 +73,7 @@ class HHPortalOrders(CustomerPortal):
         return request.render('hh_portal_orders.portal_upload_sales', {
             'control': control,
             'products': products,
+            'grouped_products': self._grouped_products(control.product_ids),
             'page_title': '上載購物紀錄',
             'error': error,
         })
@@ -134,6 +156,7 @@ class HHPortalOrders(CustomerPortal):
         return request.render('hh_portal_orders.portal_place_order', {
             'control': control,
             'products': products,
+            'grouped_products': self._grouped_products(control.product_ids),
             'min_date': min_date,
             'page_title': '訂貨單',
             'error': error,

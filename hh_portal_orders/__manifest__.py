@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'HangHeung Portal Orders',
-    'version': '1.3.6',
+    'version': '1.3.7',
     'summary': 'Customer portal for record-upload (上載購物紀錄) and order placement (訂貨單)',
     'description': """
         Adds two portal pages for external consignee customers:
