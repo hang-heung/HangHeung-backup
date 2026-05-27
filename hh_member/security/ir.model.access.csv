@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_hh_member_tier_user,hh.member.tier user,model_hh_member_tier,base.group_user,1,0,0,0
+access_hh_member_tier_admin,hh.member.tier admin,model_hh_member_tier,base.group_system,1,1,1,1

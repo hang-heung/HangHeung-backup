@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+        <!-- One res.partner.category per tier. The tier records that point
+             to these tags are created by post_init_hook, so we don't need
+             to hard-code a pricelist xmlid in this file. -->
+        <record id="tag_tier_1" model="res.partner.category">
+            <field name="name">會員 Tier 1</field>
+            <field name="color">3</field>
+        </record>
+        <record id="tag_tier_2" model="res.partner.category">
+            <field name="name">會員 Tier 2</field>
+            <field name="color">4</field>
+        </record>
+    </data>
+</odoo>
