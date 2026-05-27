@@ -39,24 +39,42 @@ class HHPortalOrders(CustomerPortal):
 
     def _grouped_products(self, products):
         """Group + sort products by POS category name. Returns a list of
-        (category_name, [products]) tuples ready for the template's
-        category-header layout. Products without any pos_categ_ids are
-        grouped under '其他' / 'Uncategorised' and shown last.
+        dicts {'code': str, 'name': str, 'products': [...]} ready for
+        the template's category-header layout.
+
+        HH category names embed a code prefix like 'H01 酥餅'. Split that
+        into ('H01', '酥餅') for display. Names without a code prefix
+        render with an empty code.
+
+        Products without any pos_categ_ids are grouped under
+        '其他 / Uncategorised' and shown last.
         """
+        import re
         UNCATEGORISED = '其他 / Uncategorised'
+        # Matches 'H01 ...', 'H123 ...', 'AA01 ...' etc.
+        CODE_RE = re.compile(r'^\s*([A-Z][A-Z0-9]{1,5})\s+(.+?)\s*$')
         groups = {}
         for p in self._sorted_products(products):
             cats = p.product_tmpl_id.pos_categ_ids.mapped('name')
             label = sorted(cats)[0] if cats else UNCATEGORISED
             groups.setdefault(label, []).append(p)
-        # Categorised groups first (alpha), uncategorised last
+
+        def split_code(label):
+            if label == UNCATEGORISED:
+                return ('', label)
+            m = CODE_RE.match(label or '')
+            if m:
+                return (m.group(1), m.group(2))
+            return ('', label)
+
         ordered = sorted(
-            ((k, v) for k, v in groups.items() if k != UNCATEGORISED),
-            key=lambda kv: (kv[0] or '').lower(),
+            (groups.items()),
+            key=lambda kv: (kv[0] == UNCATEGORISED, (kv[0] or '').lower()),
         )
-        if UNCATEGORISED in groups:
-            ordered.append((UNCATEGORISED, groups[UNCATEGORISED]))
-        return ordered
+        return [
+            {'code': split_code(k)[0], 'name': split_code(k)[1], 'products': v}
+            for k, v in ordered
+        ]
 
     # ------------------------------------------------------------------
     # /my/upload-sales (上載購物紀錄)
