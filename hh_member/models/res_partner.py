@@ -120,8 +120,17 @@ class ResPartner(models.Model):
 
     def _evaluate_tier(self):
         """Apply the correct tier to a single partner based on spending,
-        the 365-day hold, and mid-cycle upgrade rule."""
+        the 365-day hold, and mid-cycle upgrade rule.
+
+        Internal partners (partner_share=False — employees, users, the 18
+        shop contact records) are never tiered. If one happens to carry a
+        legacy tier tag, strip it here."""
         self.ensure_one()
+        if not self.partner_share:
+            if self._current_tier():
+                self._remove_tier()
+            return
+
         today = date.today()
         target = self._target_tier()
         current = self._current_tier()
@@ -150,7 +159,11 @@ class ResPartner(models.Model):
     # ------------------------------------------------------------------
     def action_check_membership_tiers(self):
         """Sweep partners that either spent on Hoymay POS in the last 365
-        days, or currently carry a tier tag, and re-evaluate each."""
+        days, or currently carry a tier tag, and re-evaluate each.
+
+        Spending source is filtered to external partners (partner_share=True)
+        only. Tier-tag holders are included unconditionally so any internal
+        partner that picked up a tag is cleaned up by _evaluate_tier."""
         start_dt = datetime.combine(
             date.today() - relativedelta(days=365),
             datetime.min.time(),
@@ -162,6 +175,7 @@ class ResPartner(models.Model):
                 ('date_order', '>=', start_dt),
                 ('amount_total', '>', 0),
                 ('partner_id', '!=', False),
+                ('partner_id.partner_share', '=', True),
                 ('company_id', '=', HOYMAY_COMPANY_ID),
             ]).mapped('partner_id.id')
         )
