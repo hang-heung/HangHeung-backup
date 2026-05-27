@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="seq_hh_production_order" model="ir.sequence">
+        <field name="name">HH Production Order</field>
+        <field name="code">hh.production.order</field>
+        <field name="prefix">PRD/</field>
+        <field name="padding">5</field>
+        <!-- no company_id: shared across all companies -->
+    </record>
+
+    <record id="seq_hh_production_adj" model="ir.sequence">
+        <field name="name">HH Production Adjustment</field>
+        <field name="code">hh.production.adj</field>
+        <field name="prefix">ADJ/</field>
+        <field name="padding">5</field>
+        <!-- no company_id: shared across all companies -->
+    </record>
+</odoo>

@@ -1,0 +1,22 @@
+{
+    'name': 'HH Production Adjustment',
+    'version': '18.0.3.0.0',
+    'summary': 'Production Orders and inventory delta adjustment for ad-hoc manufacturing',
+    'author': 'Hang Heung Cake Shop',
+    'depends': ['stock'],
+    'data': [
+        'security/groups.xml',
+        'security/ir.model.access.csv',
+        'data/ir_sequence.xml',
+        'views/stock_quant_views.xml',
+        'views/hh_production_order_views.xml',
+        'views/hh_production_adj_views.xml',
+        'views/hh_production_config_views.xml',
+        'views/res_users_views.xml',
+        'report/hh_production_order_report.xml',
+        'report/hh_production_adj_report.xml',
+    ],
+    'installable': True,
+    'application': False,
+    'license': 'LGPL-3',
+}

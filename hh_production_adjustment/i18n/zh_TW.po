@@ -1,0 +1,613 @@
+# Translation of hh_production_adjustment to Traditional Chinese
+# Copyright (C) 2026 Hang Heung Cake Shop
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0+e\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-27 00:00+0000\n"
+"PO-Revision-Date: 2026-05-27 00:00+0000\n"
+"Last-Translator: \n"
+"Language-Team: Traditional Chinese\n"
+"Language: zh_TW\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "&amp;nbsp; Consumption:"
+msgstr "&amp;nbsp; 消耗調撥："
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "&amp;nbsp;&amp;nbsp; Output:"
+msgstr "&amp;nbsp;&amp;nbsp; 產出調撥："
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+msgid ""
+"<br/>\n"
+"                                <strong>Status: </strong>"
+msgstr ""
+"<br/>\n"
+"                                <strong>狀態：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid ""
+"<br/>\n"
+"                                <strong>Status:</strong>"
+msgstr ""
+"<br/>\n"
+"                                <strong>狀態：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+msgid ""
+"<br/>\n"
+"                                <strong>Warehouse: </strong>"
+msgstr ""
+"<br/>\n"
+"                                <strong>倉庫：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "<strong>Consume From:</strong>"
+msgstr "<strong>消耗自：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+msgid "<strong>Date: </strong>"
+msgstr "<strong>日期：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "<strong>Date:</strong>"
+msgstr "<strong>日期：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "<strong>Generated Transfers:</strong>"
+msgstr "<strong>已生成調撥單：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+msgid "<strong>Notes: </strong>"
+msgstr "<strong>備註：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "<strong>Notes:</strong>"
+msgstr "<strong>備註：</strong>"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "<strong>Produce To:</strong>"
+msgstr "<strong>生產至：</strong>"
+
+#. module: hh_production_adjustment
+#: model:ir.model.constraint,message:hh_production_adjustment.constraint_hh_production_config_company_uniq
+msgid "A production configuration already exists for this company."
+msgstr "此公司已有生產訂單設定。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.actions.act_window,help:hh_production_adjustment.action_production_adjustment
+msgid ""
+"Click <b>New</b> to create a Production Adjustment,\n"
+"                or edit existing lines to adjust quantities."
+msgstr ""
+"按<b>新增</b>建立生產調整單，\n"
+"                或編輯現有明細以調整數量。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.actions.act_window,help:hh_production_adjustment.action_hh_production_config
+msgid ""
+"Add one row per company. Select the Consumption and Output operation types "
+"to use for Production Orders."
+msgstr "每間公司新增一行，選擇生產訂單所使用的消耗及產出作業類型。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.actions.act_window,help:hh_production_adjustment.action_hh_production_order
+msgid ""
+"Add raw materials to consume and finished goods to produce, then click "
+"Validate."
+msgstr "新增要消耗的原材料及要生產的成品，然後按「確認」。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_stock_quant__production_adjustment_qty
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "Adjustment (+/-)"
+msgstr "調整 (+/-)"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj__line_ids
+msgid "Adjustment Lines"
+msgstr "調整明細"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "Apply"
+msgstr "套用"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "Apply All"
+msgstr "全部套用"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "Approved by"
+msgstr "批准人"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Cancel"
+msgstr "取消"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_adj__state__cancelled
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_order__state__cancelled
+msgid "Cancelled"
+msgstr "已取消"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "Checked by"
+msgstr "核對人"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "Clear"
+msgstr "清除"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_config__company_id
+msgid "Company"
+msgstr "公司"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_order_line__line_type__consume
+msgid "Consume"
+msgstr "消耗"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__consume_warehouse_id
+msgid "Consume From"
+msgstr "消耗自"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_config__consume_type_id
+msgid "Consumption Operation Type"
+msgstr "消耗作業類型"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__consumption_picking_id
+msgid "Consumption Transfer"
+msgstr "消耗調撥"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "Counted"
+msgstr "已點算"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.actions.act_window,help:hh_production_adjustment.action_hh_production_order
+msgid "Create a Production Order"
+msgstr "建立生產訂單"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj__date
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__date
+msgid "Date"
+msgstr "日期"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "Difference"
+msgstr "差異"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_adj__state__done
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_order__state__done
+msgid "Done"
+msgstr "完成"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+msgid "Done adjustments cannot be cancelled. Please create a reverse adjustment."
+msgstr "已完成的調整單不能取消，請建立反向調整單。"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid "Done orders cannot be cancelled. Please do a reverse adjustment."
+msgstr "已完成的訂單不能取消，請進行反向調整。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_adj__state__draft
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_order__state__draft
+msgid "Draft"
+msgstr "草稿"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+msgid ""
+"Enter a <strong>positive quantity</strong> to add stock,\n"
+"                        or a <strong>negative quantity</strong> to deduct stock."
+msgstr ""
+"輸入<strong>正數數量</strong>以增加庫存，\n"
+"                        或輸入<strong>負數數量</strong>以扣減庫存。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid ""
+"Enter a <strong>positive quantity</strong> for each finished product to add "
+"to stock."
+msgstr "請為每項成品輸入<strong>正數數量</strong>，系統將增加至庫存。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid ""
+"Enter a <strong>positive quantity</strong> for each raw material to deduct "
+"from stock."
+msgstr "請為每項原材料輸入<strong>正數數量</strong>，系統將從庫存中扣除。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Generated Transfers"
+msgstr "已生成調撥單"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_res_users__production_order_user
+msgid "If enabled, this user can create and validate Production Orders."
+msgstr "啟用後，此用戶可建立及確認生產訂單。"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+msgid ""
+"Insufficient stock in \"%s\":\n"
+"\n"
+"%s"
+msgstr ""
+"「%s」庫存不足：\n"
+"\n"
+"%s"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid ""
+"Insufficient stock in \"%s\" for the following products:\n"
+"\n"
+"%s\n"
+"\n"
+"Please adjust quantities or replenish stock before validating."
+msgstr ""
+"以下產品在「%s」的庫存不足：\n"
+"\n"
+"%s\n"
+"\n"
+"請在確認前調整數量或補充庫存。"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+msgid "Inventory loss/adjustment location not found."
+msgstr "找不到庫存損耗／調整庫位。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order_line__line_type
+msgid "Line Type"
+msgstr "明細類型"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "New"
+msgstr "新增"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid ""
+"No Production Order configuration found for company \"%s\". Please ask your "
+"administrator to configure it under Inventory → Configuration → Production "
+"Order Config."
+msgstr "找不到公司「%s」的生產訂單設定，請聯絡管理員在庫存 → 設定 → 生產訂單設定中進行配置。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.actions.act_window,help:hh_production_adjustment.action_hh_production_config
+msgid "No configuration yet."
+msgstr "尚未設定。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.actions.act_window,help:hh_production_adjustment.action_production_adjustment
+msgid "No stock yet."
+msgstr "尚無庫存。"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid "No virtual Production location found for company \"%s\"."
+msgstr "找不到公司「%s」的虛擬生產庫位。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj__note
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__note
+msgid "Notes"
+msgstr "備註"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_stock_quant_tree_production_adjustment
+msgid "On Hand"
+msgstr "現有庫存"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+msgid "Only draft adjustments can be validated."
+msgstr "只有草稿狀態的調整單才可確認。"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid "Only draft orders can be validated."
+msgstr "只有草稿狀態的訂單才可確認。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_hh_production_config__output_type_id
+msgid ""
+"Operation type used to add produced goods (virtual production location → "
+"stock)."
+msgstr "用於增加生產貨品的作業類型（虛擬生產庫位 → 庫存）。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_hh_production_config__consume_type_id
+msgid ""
+"Operation type used to consume raw materials (stock → virtual production "
+"location)."
+msgstr "用於消耗原材料的作業類型（庫存 → 虛擬生產庫位）。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Optional notes or batch reference..."
+msgstr "可選備註或批次參考編號..."
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order_line__order_id
+msgid "Order"
+msgstr "訂單"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_config__output_type_id
+msgid "Output Operation Type"
+msgstr "產出作業類型"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__output_picking_id
+msgid "Output Transfer"
+msgstr "產出調撥"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid "Please add at least one line before validating."
+msgstr "請在確認前新增至少一個明細。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_hh_production_adj_line__qty
+msgid "Positive to add stock, negative to deduct stock."
+msgstr "正數為增加庫存，負數為扣減庫存。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "Prepared by"
+msgstr "製備人"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Print"
+msgstr "列印"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields.selection,name:hh_production_adjustment.selection__hh_production_order_line__line_type__produce
+msgid "Produce"
+msgstr "生產"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__produce_warehouse_id
+msgid "Produce To"
+msgstr "生產至"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__produce_line_ids
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Produced Goods"
+msgstr "生產貨品"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_hh_production_order__produce_warehouse_id
+msgid "Produced goods will be added to this warehouse's stock location."
+msgstr "生產貨品將增加至此倉庫的庫存庫位。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj_line__product_id
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order_line__product_id
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "Product"
+msgstr "產品"
+
+#. module: hh_production_adjustment
+#: model:ir.actions.act_window,name:hh_production_adjustment.action_production_adjustment
+#: model:ir.actions.report,name:hh_production_adjustment.action_report_production_adj
+#: model:ir.model,name:hh_production_adjustment.model_hh_production_adj
+#: model:ir.ui.menu,name:hh_production_adjustment.menu_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+msgid "Production Adjustment"
+msgstr "生產調整"
+
+#. module: hh_production_adjustment
+#: model:ir.model,name:hh_production_adjustment.model_hh_production_adj_line
+msgid "Production Adjustment Line"
+msgstr "生產調整明細"
+
+#. module: hh_production_adjustment
+#: model:ir.actions.report,name:hh_production_adjustment.action_report_production_order
+#: model:ir.model,name:hh_production_adjustment.model_hh_production_order
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "Production Order"
+msgstr "生產訂單"
+
+#. module: hh_production_adjustment
+#: model:ir.actions.act_window,name:hh_production_adjustment.action_hh_production_config
+#: model:ir.ui.menu,name:hh_production_adjustment.menu_hh_production_config
+msgid "Production Order Config"
+msgstr "生產訂單設定"
+
+#. module: hh_production_adjustment
+#: model:ir.model,name:hh_production_adjustment.model_hh_production_config
+msgid "Production Order Configuration (per company)"
+msgstr "生產訂單設定（按公司）"
+
+#. module: hh_production_adjustment
+#: model:ir.model,name:hh_production_adjustment.model_hh_production_order_line
+msgid "Production Order Line"
+msgstr "生產訂單明細"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_res_users__production_order_user
+#: model:res.groups,name:hh_production_adjustment.group_hh_production_user
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_users_form_production_order
+msgid "Production Order User"
+msgstr "生產訂單用戶"
+
+#. module: hh_production_adjustment
+#: model:ir.actions.act_window,name:hh_production_adjustment.action_hh_production_order
+#: model:ir.ui.menu,name:hh_production_adjustment.menu_hh_production_order
+msgid "Production Orders"
+msgstr "生產訂單"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Qty to Add"
+msgstr "增加數量"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Qty to Deduct"
+msgstr "扣除數量"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order_line__qty
+msgid "Quantity"
+msgstr "數量"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj_line__qty
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+msgid "Quantity (+/-)"
+msgstr "數量 (+/-)"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+msgid ""
+"Quantity cannot be zero (product: %s). Use a positive number to add stock or"
+" a negative number to deduct."
+msgstr "數量不能為零（產品：%s）。請輸入正數以增加庫存，或輸入負數以扣減庫存。"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid ""
+"Quantity must be greater than zero on \"%s\" tab (product: %s). Enter a "
+"positive number — the tab determines whether stock is added or deducted."
+msgstr "「%s」分頁的數量必須大於零（產品：%s）。請輸入正數——分頁類別決定庫存是增加還是扣除。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__consume_line_ids
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Raw Materials (Consume)"
+msgstr "原材料（消耗）"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_hh_production_order__consume_warehouse_id
+msgid "Raw materials will be consumed from this warehouse's stock location."
+msgstr "原材料將從此倉庫的庫存庫位中扣除。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj__name
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__name
+msgid "Reference"
+msgstr "參考編號"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Reset to Draft"
+msgstr "重設為草稿"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj__state
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order__state
+msgid "Status"
+msgstr "狀態"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid "Transfers"
+msgstr "調撥單"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_stock_quant__production_adjustment_qty
+msgid ""
+"Type a positive number to add stock or a negative number to remove stock. "
+"Applied on top of the current On Hand quantity."
+msgstr "輸入正數以增加庫存，輸入負數以減少庫存。以現有庫存數量為基礎進行調整。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj_line__product_uom_id
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_order_line__product_uom_id
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_adj_document
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.report_production_order_document
+msgid "Unit"
+msgstr "單位"
+
+#. module: hh_production_adjustment
+#: model:res.groups,comment:hh_production_adjustment.group_hh_production_user
+msgid "Users who can create and validate Production Orders."
+msgstr "可建立及確認生產訂單的用戶。"
+
+#. module: hh_production_adjustment
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
+#: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
+msgid "Validate"
+msgstr "確認"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_hh_production_adj__warehouse_id
+msgid "Warehouse"
+msgstr "倉庫"
+
+#. module: hh_production_adjustment
+#. odoo-python
+#: code:addons/hh_production_adjustment/models/hh_production_adj.py:0
+#: code:addons/hh_production_adjustment/models/hh_production_order.py:0
+msgid "• %s: required %.2f %s, available %.2f %s"
+msgstr "• %s：需要 %.2f %s，現有 %.2f %s"

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_stock_quant_tree_production_adjustment" model="ir.ui.view">
+        <field name="name">stock.quant.production.adjustment.list</field>
+        <field name="model">stock.quant</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <list default_order="location_id, product_id"
+                  decoration-warning="is_outdated"
+                  editable="bottom"
+                  create="0"
+                  edit="1" import="0"
+                  js_class="inventory_report_list" sample="1">
+                <header>
+                    <!-- New button opens hh.production.order form -->
+                    <button name="action_new_production_adjustment"
+                            type="object"
+                            string="New"
+                            class="btn btn-primary"
+                            display="always"/>
+                    <button name="action_apply_all" string="Apply All" type="object"
+                            class="btn btn-secondary"
+                            invisible="not context.get('inventory_mode') or context.get('inventory_report_mode')"
+                            display="always"/>
+                    <button name="stock.action_stock_inventory_adjustement_name" type="action" string="Apply"/>
+                    <button name="action_reset" type="object" string="Clear" groups="stock.group_stock_manager"/>
+                </header>
+                <field name="id" column_invisible="True"/>
+                <field name="is_outdated" column_invisible="True"/>
+                <field name="tracking" column_invisible="True"/>
+                <field name="inventory_quantity_set" column_invisible="True"/>
+                <field name="company_id" column_invisible="True"/>
+                <field name="location_id"
+                       domain="[('usage', 'in', ['internal', 'transit'])]"
+                       readonly="id"
+                       options="{'no_create': True}"/>
+                <field name="product_id"
+                       readonly="id"
+                       force_save="1"
+                       options="{'no_create': True}"/>
+                <field name="product_categ_id" optional="hide"/>
+                <field name="lot_id" groups="stock.group_production_lot"
+                       options="{'no_create': True}"
+                       context="{'default_product_id': product_id, 'default_company_id': company_id}"/>
+                <field name="package_id" groups="stock.group_tracking_lot"
+                       options="{'no_create': True}" optional="hide"/>
+                <field name="owner_id" groups="stock.group_tracking_owner"
+                       options="{'no_create': True}" optional="hide"/>
+                <field name="available_quantity" optional="show"
+                       decoration-danger="available_quantity &lt; 0"/>
+                <field name="quantity" string="On Hand" readonly="1"/>
+                <field name="production_adjustment_qty"
+                       string="Adjustment (+/-)"
+                       decoration-success="production_adjustment_qty &gt; 0"
+                       decoration-danger="production_adjustment_qty &lt; 0"/>
+                <field name="inventory_quantity" string="Counted" optional="hide"/>
+                <field name="inventory_diff_quantity" string="Difference"
+                       readonly="1" optional="hide"/>
+                <field name="product_uom_id" groups="uom.group_uom"
+                       options="{'no_create': True}"/>
+                <button name="action_apply_inventory" type="object"
+                        icon="fa-save" title="Apply"
+                        invisible="not inventory_quantity_set"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_production_adjustment" model="ir.actions.act_window">
+        <field name="name">Production Adjustment</field>
+        <field name="res_model">stock.quant</field>
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="view_stock_quant_tree_production_adjustment"/>
+        <field name="domain">[('location_id.usage', 'in', ['internal', 'transit'])]</field>
+        <field name="context">{
+            'search_default_internal_loc': 1,
+            'inventory_mode': True,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No stock yet.</p>
+            <p>
+                Click <b>New</b> to create a Production Adjustment,
+                or edit existing lines to adjust quantities.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_production_adjustment"
+              name="Production Adjustment"
+              parent="stock.menu_stock_adjustments"
+              action="action_production_adjustment"
+              sequence="15"
+              groups="hh_production_adjustment.group_hh_production_user"/>
+
+</odoo>

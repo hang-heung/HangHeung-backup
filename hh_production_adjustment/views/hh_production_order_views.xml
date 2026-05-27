@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hh_production_order_list" model="ir.ui.view">
+        <field name="name">hh.production.order.list</field>
+        <field name="model">hh.production.order</field>
+        <field name="arch" type="xml">
+            <list default_order="name desc" decoration-muted="state == 'cancelled'" decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="note"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hh_production_order_form" model="ir.ui.view">
+        <field name="name">hh.production.order.form</field>
+        <field name="model">hh.production.order</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_validate"
+                            string="Validate"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_print"
+                            string="Print"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="consume_warehouse_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="produce_warehouse_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="note" readonly="state != 'draft'" placeholder="Optional notes or batch reference..."/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Raw Materials (Consume)">
+                            <div class="alert alert-info mb-2" role="alert">
+                                Enter a <strong>positive quantity</strong> for each raw material to deduct from stock.
+                            </div>
+                            <field name="consume_line_ids"
+                                   readonly="state != 'draft'"
+                                   context="{'default_line_type': 'consume'}">
+                                <list editable="bottom">
+                                    <field name="line_type" column_invisible="True" default="consume"/>
+                                    <field name="product_id" options="{'no_create': True}"/>
+                                    <field name="qty" string="Qty to Deduct"/>
+                                    <field name="product_uom_id" options="{'no_create': True}" groups="uom.group_uom"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Produced Goods">
+                            <div class="alert alert-info mb-2" role="alert">
+                                Enter a <strong>positive quantity</strong> for each finished product to add to stock.
+                            </div>
+                            <field name="produce_line_ids"
+                                   readonly="state != 'draft'"
+                                   context="{'default_line_type': 'produce'}">
+                                <list editable="bottom">
+                                    <field name="line_type" column_invisible="True" default="produce"/>
+                                    <field name="product_id" options="{'no_create': True}"/>
+                                    <field name="qty" string="Qty to Add"/>
+                                    <field name="product_uom_id" options="{'no_create': True}" groups="uom.group_uom"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+
+                    <group invisible="state != 'done'" string="Generated Transfers">
+                        <field name="consumption_picking_id" readonly="1"/>
+                        <field name="output_picking_id" readonly="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hh_production_order" model="ir.actions.act_window">
+        <field name="name">Production Orders</field>
+        <field name="res_model">hh.production.order</field>
+        <field name="view_mode">list,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Create a Production Order</p>
+            <p>Add raw materials to consume and finished goods to produce, then click Validate.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_hh_production_order"
+              name="Production Orders"
+              parent="stock.menu_stock_adjustments"
+              action="action_hh_production_order"
+              sequence="14"
+              groups="hh_production_adjustment.group_hh_production_user"/>
+
+</odoo>

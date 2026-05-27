@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hh_production_config_list" model="ir.ui.view">
+        <field name="name">hh.production.config.list</field>
+        <field name="model">hh.production.config</field>
+        <field name="arch" type="xml">
+            <list editable="bottom">
+                <field name="company_id" options="{'no_create': True}"/>
+                <field name="consume_type_id" options="{'no_create': True}"/>
+                <field name="output_type_id" options="{'no_create': True}"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="action_hh_production_config" model="ir.actions.act_window">
+        <field name="name">Production Order Config</field>
+        <field name="res_model">hh.production.config</field>
+        <field name="view_mode">list</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">No configuration yet.</p>
+            <p>Add one row per company. Select the Consumption and Output operation types to use for Production Orders.</p>
+        </field>
+    </record>
+
+    <menuitem id="menu_hh_production_config"
+              name="Production Order Config"
+              parent="stock.menu_stock_config_settings"
+              action="action_hh_production_config"
+              sequence="100"
+              groups="base.group_system"/>
+
+</odoo>

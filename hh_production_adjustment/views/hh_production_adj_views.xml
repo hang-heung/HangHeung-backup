@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hh_production_adj_list" model="ir.ui.view">
+        <field name="name">hh.production.adj.list</field>
+        <field name="model">hh.production.adj</field>
+        <field name="arch" type="xml">
+            <list default_order="name desc"
+                  decoration-muted="state == 'cancelled'"
+                  decoration-success="state == 'done'">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="warehouse_id"/>
+                <field name="note"/>
+                <field name="state" widget="badge"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_hh_production_adj_form" model="ir.ui.view">
+        <field name="name">hh.production.adj.form</field>
+        <field name="model">hh.production.adj</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_validate"
+                            string="Validate"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'draft'"/>
+                    <button name="action_print"
+                            string="Print"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button name="action_cancel"
+                            string="Cancel"
+                            type="object"
+                            invisible="state != 'draft'"/>
+                    <button name="action_reset_draft"
+                            string="Reset to Draft"
+                            type="object"
+                            invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" readonly="1"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date" readonly="state != 'draft'"/>
+                            <field name="warehouse_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                        </group>
+                        <group>
+                            <field name="note" readonly="state != 'draft'" placeholder="Optional notes or batch reference..."/>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-info mb-2" role="alert">
+                        Enter a <strong>positive quantity</strong> to add stock,
+                        or a <strong>negative quantity</strong> to deduct stock.
+                    </div>
+
+                    <field name="line_ids" readonly="state != 'draft'">
+                        <list editable="bottom">
+                            <field name="product_id" options="{'no_create': True}"/>
+                            <field name="qty" string="Quantity (+/-)"/>
+                            <field name="product_uom_id" options="{'no_create': True}" groups="uom.group_uom"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+</odoo>
