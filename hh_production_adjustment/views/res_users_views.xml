@@ -10,6 +10,9 @@
                 <field name="production_order_user"
                        widget="boolean_toggle"
                        string="Production Order User"/>
+                <field name="production_adj_user"
+                       widget="boolean_toggle"
+                       string="Production Adjustment User"/>
             </xpath>
         </field>
     </record>

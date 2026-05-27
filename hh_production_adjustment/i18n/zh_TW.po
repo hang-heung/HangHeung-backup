@@ -595,6 +595,22 @@ msgid "Users who can create and validate Production Orders."
 msgstr "可建立及確認生產訂單的用戶。"
 
 #. module: hh_production_adjustment
+#: model:ir.model.fields,field_description:hh_production_adjustment.field_res_users__production_adj_user
+#: model:res.groups,name:hh_production_adjustment.group_hh_production_adj_user
+msgid "Production Adjustment User"
+msgstr "生產調整用戶"
+
+#. module: hh_production_adjustment
+#: model:res.groups,comment:hh_production_adjustment.group_hh_production_adj_user
+msgid "Users who can create and validate Production Adjustments."
+msgstr "可建立及確認生產調整單的用戶。"
+
+#. module: hh_production_adjustment
+#: model:ir.model.fields,help:hh_production_adjustment.field_res_users__production_adj_user
+msgid "If enabled, this user can create and validate Production Adjustments."
+msgstr "啟用後，此用戶可建立及確認生產調整單。"
+
+#. module: hh_production_adjustment
 #: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_adj_form
 #: model_terms:ir.ui.view,arch_db:hh_production_adjustment.view_hh_production_order_form
 msgid "Validate"

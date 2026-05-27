@@ -3,9 +3,9 @@ access_hh_production_order_user,hh.production.order user,model_hh_production_ord
 access_hh_production_order_manager,hh.production.order manager,model_hh_production_order,stock.group_stock_manager,1,1,1,1
 access_hh_production_order_line_user,hh.production.order.line user,model_hh_production_order_line,hh_production_adjustment.group_hh_production_user,1,1,1,0
 access_hh_production_order_line_manager,hh.production.order.line manager,model_hh_production_order_line,stock.group_stock_manager,1,1,1,1
-access_hh_production_adj_user,hh.production.adj user,model_hh_production_adj,hh_production_adjustment.group_hh_production_user,1,1,1,0
+access_hh_production_adj_user,hh.production.adj user,model_hh_production_adj,hh_production_adjustment.group_hh_production_adj_user,1,1,1,0
 access_hh_production_adj_manager,hh.production.adj manager,model_hh_production_adj,stock.group_stock_manager,1,1,1,1
-access_hh_production_adj_line_user,hh.production.adj.line user,model_hh_production_adj_line,hh_production_adjustment.group_hh_production_user,1,1,1,0
+access_hh_production_adj_line_user,hh.production.adj.line user,model_hh_production_adj_line,hh_production_adjustment.group_hh_production_adj_user,1,1,1,0
 access_hh_production_adj_line_manager,hh.production.adj.line manager,model_hh_production_adj_line,stock.group_stock_manager,1,1,1,1
 access_hh_production_config_admin,hh.production.config admin,model_hh_production_config,base.group_system,1,1,1,1
 access_hh_production_config_manager,hh.production.config manager,model_hh_production_config,stock.group_stock_manager,1,0,0,0

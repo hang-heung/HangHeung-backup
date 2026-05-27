@@ -6,4 +6,11 @@
         <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
         <field name="comment">Users who can create and validate Production Orders.</field>
     </record>
+
+    <record id="group_hh_production_adj_user" model="res.groups">
+        <field name="name">Production Adjustment User</field>
+        <field name="category_id" ref="base.module_category_inventory_inventory"/>
+        <field name="implied_ids" eval="[(4, ref('stock.group_stock_user'))]"/>
+        <field name="comment">Users who can create and validate Production Adjustments.</field>
+    </record>
 </odoo>

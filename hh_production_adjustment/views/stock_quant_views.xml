@@ -90,6 +90,6 @@
               parent="stock.menu_stock_adjustments"
               action="action_production_adjustment"
               sequence="15"
-              groups="hh_production_adjustment.group_hh_production_user"/>
+              groups="hh_production_adjustment.group_hh_production_adj_user"/>
 
 </odoo>
