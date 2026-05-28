@@ -89,7 +89,8 @@ class HHMemberFreeRule(models.Model):
     def _reward_product_recordset(self):
         """Resolve the set of products offered as the free gift: the explicit
         list plus every POS-sellable product whose category (or a
-        sub-category) is in free_category_ids."""
+        sub-category) is in free_category_ids. Combo products are excluded —
+        Odoo loyalty rewards reject reward_type='product' combos."""
         self.ensure_one()
         products = self.free_product_ids
         if self.free_category_ids:
@@ -99,8 +100,9 @@ class HHMemberFreeRule(models.Model):
             products |= self.env['product.product'].sudo().search([
                 ('categ_id', 'in', cat_ids),
                 ('available_in_pos', '=', True),
+                ('type', '!=', 'combo'),
             ])
-        return products
+        return products.filtered(lambda p: p.type != 'combo')
 
     # ------------------------------------------------------------------
     # Backing loyalty.program (coupon, free-product reward)
