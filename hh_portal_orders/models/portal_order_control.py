@@ -157,6 +157,26 @@ class PortalOrderControl(models.Model):
                 'groups_id': [(6, 0, [portal_group.id])],
             })
 
+    def action_grant_portal_access(self):
+        """Button: grant portal access to the Portal Customer with
+        login = email and password = Fax No."""
+        self.ensure_one()
+        self._grant_portal_access()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'type': 'success',
+                'title': _("Portal Access Granted"),
+                'message': _(
+                    "%(name)s can now log in.\nLogin: %(login)s\nPassword: the contact's Fax No.",
+                    name=self.partner_id.display_name,
+                    login=self.partner_id.email,
+                ),
+                'sticky': False,
+            },
+        }
+
     def copy_data(self, default=None):
         default = dict(default or {})
         vals_list = super().copy_data(default=default)

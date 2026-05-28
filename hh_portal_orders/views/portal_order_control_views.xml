@@ -21,6 +21,12 @@
         <field name="model">portal.order.control</field>
         <field name="arch" type="xml">
             <form string="Portal Order Control">
+                <header>
+                    <button name="action_grant_portal_access" type="object"
+                            string="Grant Portal Access" class="btn-primary"
+                            icon="fa-key"
+                            help="Create/refresh the portal login for this customer (login = Email, password = Fax No.)"/>
+                </header>
                 <sheet>
                     <widget name="web_ribbon" title="Archived" bg_color="bg-danger" invisible="active"/>
                     <field name="active" invisible="1"/>
