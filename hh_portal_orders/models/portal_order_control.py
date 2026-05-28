@@ -1,4 +1,9 @@
+import logging
+
 from odoo import _, api, fields, models
+from odoo.exceptions import UserError
+
+_logger = logging.getLogger(__name__)
 
 
 class PortalOrderControl(models.Model):
@@ -83,6 +88,74 @@ class PortalOrderControl(models.Model):
                     domain.append(('company_id', '=', rec.company_id.id))
                 wh = Warehouse.search(domain, limit=1)
             rec.warehouse_id = wh.id if wh else False
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._grant_portal_access()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if vals.get('partner_id'):
+            self._grant_portal_access()
+        return res
+
+    def copy(self, default=None):
+        # The duplicated partner copies the original's email, which would
+        # collide on the portal login. Skip the auto-grant for the copy;
+        # access is granted later once a real (unique) partner is set.
+        return super(
+            PortalOrderControl, self.with_context(skip_portal_grant=True)
+        ).copy(default)
+
+    def _grant_portal_access(self):
+        """Grant portal access to each record's partner, with
+        login = partner.email and password = partner.fax_number."""
+        if self.env.context.get('skip_portal_grant'):
+            return
+        portal_group = self.env.ref('base.group_portal')
+        Users = self.env['res.users'].sudo()
+        for rec in self:
+            partner = rec.partner_id
+            if not partner:
+                continue
+            login = (partner.email or '').strip()
+            password = (partner.fax_number or '').strip()
+            if not login or not password:
+                raise UserError(_(
+                    "Cannot grant portal access for '%s': the contact must have "
+                    "both an Email (used as the login) and a Fax No. (used as the "
+                    "password). Please fill them in on the contact first."
+                ) % partner.display_name)
+
+            existing = partner.sudo().user_ids[:1]
+            if existing:
+                if existing.has_group('base.group_portal') and not existing.has_group('base.group_user'):
+                    existing.write({'login': login, 'password': password})
+                else:
+                    _logger.info(
+                        "Portal grant skipped for %s: partner already has a "
+                        "non-portal user (%s).", partner.display_name, existing.login)
+                continue
+
+            clash = Users.with_context(active_test=False).search(
+                [('login', '=', login)], limit=1)
+            if clash:
+                raise UserError(_(
+                    "Cannot grant portal access for '%s': the email '%s' is "
+                    "already used as a login by another user. Use a unique email."
+                ) % (partner.display_name, login))
+
+            company = rec.company_id or self.env.company
+            Users.with_context(no_reset_password=True).create({
+                'login': login,
+                'password': password,
+                'partner_id': partner.id,
+                'company_id': company.id,
+                'company_ids': [(6, 0, [company.id])],
+                'groups_id': [(6, 0, [portal_group.id])],
+            })
 
     def copy_data(self, default=None):
         default = dict(default or {})
