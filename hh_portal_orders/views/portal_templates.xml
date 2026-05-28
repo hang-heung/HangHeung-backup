@@ -299,7 +299,8 @@
 
                     <div class="row mb-3 align-items-center">
                         <label class="col-sm-3 col-form-label fw-bold">
-                            送貨日期 / Delivery Date
+                            <t t-if="is_hangheung">訂貨日期 / Order Date</t>
+                            <t t-else="">送貨日期 / Delivery Date</t>
                         </label>
                         <div class="col-sm-4">
                             <input type="date" name="commitment_date" class="form-control"

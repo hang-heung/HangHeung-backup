@@ -218,13 +218,15 @@ class HHPortalOrders(CustomerPortal):
             })
         products = self._sorted_products(control.product_ids)
         min_date = (date.today() + timedelta(days=1)).isoformat()
-        page_title = '客戶訂貨單' if self._is_hangheung_control(control) else '訂貨單'
+        is_hangheung = self._is_hangheung_control(control)
+        page_title = '客戶訂貨單' if is_hangheung else '訂貨單'
         return request.render('hh_portal_orders.portal_place_order', {
             'control': control,
             'products': products,
             'grouped_products': self._grouped_products(control.product_ids),
             'min_date': min_date,
             'page_title': page_title,
+            'is_hangheung': is_hangheung,
             'error': error,
         })
 
