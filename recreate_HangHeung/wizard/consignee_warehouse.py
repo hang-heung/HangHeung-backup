@@ -20,8 +20,8 @@ class ConsigneeWarehouseWizard(models.TransientModel):
     warehouse_code = fields.Char(
         string='Short Code',
         required=True,
-        size=5,
-        help="Up to 5 characters. Drives the picking-type name prefixes. Must be unique.",
+        size=10,
+        help="Up to 10 characters. Drives the picking-type name prefixes. Must be unique.",
     )
     warehouse_name = fields.Char(
         string='Warehouse Name',
