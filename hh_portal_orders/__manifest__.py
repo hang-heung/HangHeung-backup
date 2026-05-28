@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'HangHeung Portal Orders',
-    'version': '1.3.16',
+    'version': '1.3.17',
     'summary': 'Customer portal for record-upload (上載購物紀錄) and order placement (訂貨單)',
     'description': """
         Adds two portal pages for external consignee customers:
@@ -19,6 +19,7 @@
     'author': 'HangHeung IT',
     'depends': [
         'sale_management',
+        'purchase',  # inherit purchase_order_portal_content to hide prices
         'portal',
         'point_of_sale',  # for pos_categ_ids on product.template
         'recreate_HangHeung',  # commitment_date + intercompany chain glue + alternate_unit_of_measure/conversion_rate

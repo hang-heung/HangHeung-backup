@@ -403,4 +403,48 @@
         </t>
     </template>
 
+    <!-- ===========================================================
+         Hide all pricing on the portal Sales Order document:
+         Unit Price / Taxes / Disc.% / Amount columns (everything from
+         the 3rd column onward), section subtotals, the totals table and
+         the sidebar amount figures.
+         =========================================================== -->
+    <template id="hh_hide_sale_portal_prices"
+              inherit_id="sale.sale_order_portal_content"
+              name="HH: hide prices on portal sales orders">
+        <xpath expr="//table[@id='sales_order_table']" position="before">
+            <style>
+                #sales_order_table th:nth-child(n+3),
+                #sales_order_table td:nth-child(n+3),
+                #sales_order_table tr.is-subtotal,
+                table[name="sale_order_totals_table"],
+                div#total[name="total"],
+                [data-id="total_amount"],
+                [data-id="total_untaxed"],
+                [data-id="amount_undiscounted"],
+                [name="sale_order_advantage"] { display: none !important; }
+            </style>
+        </xpath>
+    </template>
+
+    <!-- ===========================================================
+         Hide all pricing on the portal Purchase Order document:
+         Unit Price / Taxes / Disc.% / Amount columns (3rd column
+         onward), section subtotals, the totals block and the header
+         total figure.
+         =========================================================== -->
+    <template id="hh_hide_purchase_portal_prices"
+              inherit_id="purchase.purchase_order_portal_content"
+              name="HH: hide prices on portal purchase orders">
+        <xpath expr="//table[@id='purchase_order_table']" position="before">
+            <style>
+                #purchase_order_table th:nth-child(n+3),
+                #purchase_order_table td:nth-child(n+3),
+                #purchase_order_table tr.is-subtotal,
+                div#total[name="total"],
+                [data-id="total_amount"] { display: none !important; }
+            </style>
+        </xpath>
+    </template>
+
 </odoo>
