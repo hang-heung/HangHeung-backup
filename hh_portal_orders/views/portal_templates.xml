@@ -56,6 +56,10 @@
               priority="30">
         <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
             <t t-if="hh_portal_control">
+                <!-- Hide the "Your Invoices" tile for consignee portal users -->
+                <style>
+                    .o_portal_index_card:has(&gt; a[href*="filterby=invoices"]) { display: none !important; }
+                </style>
                 <div class="row mb-4 hh-portal-tiles">
                     <div class="col-md-6 mb-3">
                         <a href="/my/upload-sales"
@@ -115,9 +119,6 @@
         <xpath expr="//div[@id='portal_common_category']" position="attributes">
             <attribute name="t-if">False</attribute>
         </xpath>
-
-        <!-- Hide 發票 (Your Invoices + Our Invoices) tiles -->
-        <xpath expr="//t[@t-call='portal.portal_docs_entry'][t[@t-set='url' and contains(@t-value, '/my/invoices')]]" position="replace"/>
     </template>
 
     <!-- ===========================================================
@@ -445,6 +446,28 @@
                 [data-id="total_amount"] { display: none !important; }
             </style>
         </xpath>
+    </template>
+
+    <!-- ===========================================================
+         Hide the "Total" column in the portal Sales Orders list
+         (銷售紀錄) — it is the last column (amount_total).
+         =========================================================== -->
+    <template id="hh_hide_sale_list_total"
+              inherit_id="sale.portal_my_orders"
+              name="HH: hide Total column in portal sales order list">
+        <xpath expr="//td[span[@t-field='order.amount_total']]" position="replace"/>
+        <xpath expr="//thead/tr/th[last()]" position="replace"/>
+    </template>
+
+    <!-- ===========================================================
+         Hide the "Total" column in the portal Purchase Orders list
+         (補貨紀錄).
+         =========================================================== -->
+    <template id="hh_hide_purchase_list_total"
+              inherit_id="purchase.portal_my_purchase_orders"
+              name="HH: hide Total column in portal purchase order list">
+        <xpath expr="//th[@id='order_total_header']" position="replace"/>
+        <xpath expr="//td[@id='order_total']" position="replace"/>
     </template>
 
 </odoo>

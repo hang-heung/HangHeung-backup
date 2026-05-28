@@ -332,3 +332,16 @@ class HHPortalOrders(CustomerPortal):
         control = self._get_user_portal_control()
         values['hh_portal_control'] = control
         return values
+
+    # ------------------------------------------------------------------
+    # 銷售紀錄 (/my/orders): a consignee may only see the Sales Orders they
+    # submitted via 上載購物紀錄 (is_portal_record_upload=True), not other
+    # orders that exist for their partner. Non-consignee portal users are
+    # unaffected.
+    # ------------------------------------------------------------------
+
+    def _prepare_orders_domain(self, partner):
+        domain = super()._prepare_orders_domain(partner)
+        if self._get_user_portal_control():
+            domain = domain + [('is_portal_record_upload', '=', True)]
+        return domain
