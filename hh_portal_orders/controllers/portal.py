@@ -218,15 +218,13 @@ class HHPortalOrders(CustomerPortal):
             })
         products = self._sorted_products(control.product_ids)
         min_date = (date.today() + timedelta(days=1)).isoformat()
-        is_hangheung = self._is_hangheung_control(control)
-        page_title = '客戶訂貨單' if is_hangheung else '訂貨單'
+        page_title = '客戶訂貨單' if self._is_hangheung_control(control) else '訂貨單'
         return request.render('hh_portal_orders.portal_place_order', {
             'control': control,
             'products': products,
             'grouped_products': self._grouped_products(control.product_ids),
             'min_date': min_date,
             'page_title': page_title,
-            'is_hangheung': is_hangheung,
             'error': error,
         })
 
@@ -287,15 +285,28 @@ class HHPortalOrders(CustomerPortal):
                     'product_uom_qty': base_qty,
                     'product_uom': uom_id,
                 }))
+            # The SO is created in the HangHeung company, so the pricelist
+            # must belong to HangHeung or be company-agnostic. The control's
+            # pricelist may be a Hoymay one (incompatible) -- in that case
+            # fall back to a HangHeung/company-agnostic pricelist.
+            Pricelist = request.env['product.pricelist'].sudo()
+            pricelist = control.pricelist_id
+            if not pricelist or (pricelist.company_id and
+                                 pricelist.company_id.id != HANGHEUNG_COMPANY_ID):
+                pricelist = Pricelist.with_company(HANGHEUNG_COMPANY_ID).search([
+                    ('company_id', 'in', (False, HANGHEUNG_COMPANY_ID)),
+                ], order='company_id desc', limit=1)
             SO = request.env['sale.order'].sudo()
             try:
-                so = SO.with_company(HANGHEUNG_COMPANY_ID).create({
+                so_vals = {
                     'partner_id': control.partner_id.id,
-                    'pricelist_id': control.pricelist_id.id,
                     'company_id': HANGHEUNG_COMPANY_ID,
                     'commitment_date': commitment_date + ' 12:00:00',
                     'order_line': so_lines,
-                })
+                }
+                if pricelist:
+                    so_vals['pricelist_id'] = pricelist.id
+                so = SO.with_company(HANGHEUNG_COMPANY_ID).create(so_vals)
                 so.with_company(HANGHEUNG_COMPANY_ID).action_confirm()
             except Exception as e:
                 _logger.exception("Portal 客戶訂貨單 submit failed for partner %s: %s",
