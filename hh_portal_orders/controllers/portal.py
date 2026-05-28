@@ -29,6 +29,14 @@ class HHPortalOrders(CustomerPortal):
             ('active', '=', True),
         ], limit=1)
 
+    def _consignee_warehouse(self, control):
+        """Return the consignee's own Hoymay warehouse (matched by the
+        control's partner), or an empty recordset."""
+        return request.env['stock.warehouse'].sudo().search([
+            ('partner_id', '=', control.partner_id.id),
+            ('company_id', '=', HOYMAY_COMPANY_ID),
+        ], limit=1)
+
     def _convert_line_qty(self, product, entered_qty, post):
         """Resolve the chosen UoM for a product line and return
         (product_uom_id, qty_in_base_uom).
@@ -154,16 +162,22 @@ class HHPortalOrders(CustomerPortal):
                 'product_uom': uom_id,
             }))
 
+        so_vals = {
+            'partner_id': control.partner_id.id,
+            'pricelist_id': control.pricelist_id.id,
+            'company_id': HOYMAY_COMPANY_ID,
+            'date_order': date_order + ' 12:00:00',
+            'is_portal_record_upload': True,
+            'order_line': so_lines,
+        }
+        # Consume stock from the consignee's own warehouse, if it has one.
+        consignee_wh = self._consignee_warehouse(control)
+        if consignee_wh:
+            so_vals['warehouse_id'] = consignee_wh.id
+
         SO = request.env['sale.order'].sudo()
         try:
-            so = SO.with_company(HOYMAY_COMPANY_ID).create({
-                'partner_id': control.partner_id.id,
-                'pricelist_id': control.pricelist_id.id,
-                'company_id': HOYMAY_COMPANY_ID,
-                'date_order': date_order + ' 12:00:00',
-                'is_portal_record_upload': True,
-                'order_line': so_lines,
-            })
+            so = SO.with_company(HOYMAY_COMPANY_ID).create(so_vals)
             so.with_company(HOYMAY_COMPANY_ID).action_confirm()
         except Exception as e:
             _logger.exception("Portal upload-sales submit failed for partner %s: %s",
@@ -271,10 +285,7 @@ class HHPortalOrders(CustomerPortal):
 
         # Receive into the consignee's own warehouse (matched by partner).
         # Fall back to a dropship-to-consignee PO if no warehouse exists.
-        consignee_wh = request.env['stock.warehouse'].sudo().search([
-            ('partner_id', '=', control.partner_id.id),
-            ('company_id', '=', HOYMAY_COMPANY_ID),
-        ], limit=1)
+        consignee_wh = self._consignee_warehouse(control)
         if consignee_wh and consignee_wh.in_type_id:
             po_vals['picking_type_id'] = consignee_wh.in_type_id.id
         else:
