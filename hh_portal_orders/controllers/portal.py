@@ -251,14 +251,6 @@ class HHPortalOrders(CustomerPortal):
 
         PO = request.env['purchase.order'].sudo()
         date_planned_str = commitment_date + ' 12:00:00'
-        dropship_pt = request.env['stock.picking.type'].sudo().search([
-            ('code', '=', 'dropship'),
-            ('company_id', '=', HOYMAY_COMPANY_ID),
-        ], limit=1)
-        if not dropship_pt:
-            _logger.error("Portal place-order: no Dropship picking type for Hoymay (company %s)",
-                          HOYMAY_COMPANY_ID)
-            return request.redirect('/my/place-order?error=submit-failed')
 
         po_lines = []
         for pid, qty in line_qty.items():
@@ -269,15 +261,36 @@ class HHPortalOrders(CustomerPortal):
                 'product_uom': uom_id,
                 'date_planned': date_planned_str,
             }))
+
+        po_vals = {
+            'company_id': HOYMAY_COMPANY_ID,
+            'partner_id': THATS_VENDOR_PARTNER_ID,
+            'date_planned': date_planned_str,
+            'order_line': po_lines,
+        }
+
+        # Receive into the consignee's own warehouse (matched by partner).
+        # Fall back to a dropship-to-consignee PO if no warehouse exists.
+        consignee_wh = request.env['stock.warehouse'].sudo().search([
+            ('partner_id', '=', control.partner_id.id),
+            ('company_id', '=', HOYMAY_COMPANY_ID),
+        ], limit=1)
+        if consignee_wh and consignee_wh.in_type_id:
+            po_vals['picking_type_id'] = consignee_wh.in_type_id.id
+        else:
+            dropship_pt = request.env['stock.picking.type'].sudo().search([
+                ('code', '=', 'dropship'),
+                ('company_id', '=', HOYMAY_COMPANY_ID),
+            ], limit=1)
+            if not dropship_pt:
+                _logger.error("Portal place-order: no Dropship picking type for Hoymay (company %s)",
+                              HOYMAY_COMPANY_ID)
+                return request.redirect('/my/place-order?error=submit-failed')
+            po_vals['picking_type_id'] = dropship_pt.id
+            po_vals['dest_address_id'] = control.partner_id.id
+
         try:
-            po = PO.with_company(HOYMAY_COMPANY_ID).create({
-                'company_id': HOYMAY_COMPANY_ID,
-                'partner_id': THATS_VENDOR_PARTNER_ID,
-                'dest_address_id': control.partner_id.id,
-                'picking_type_id': dropship_pt.id,
-                'date_planned': date_planned_str,
-                'order_line': po_lines,
-            })
+            po = PO.with_company(HOYMAY_COMPANY_ID).create(po_vals)
             po.with_company(HOYMAY_COMPANY_ID).button_confirm()
         except Exception as e:
             _logger.exception("Portal place-order submit failed for partner %s: %s",
