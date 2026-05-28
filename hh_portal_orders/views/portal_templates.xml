@@ -145,9 +145,9 @@
                                         </td>
                                         <td>
                                             <select t-attf-name="uom_{{p.id}}" class="form-select">
-                                                <option t-att-value="p.uom_id.id"><t t-esc="p.uom_id.name"/></option>
-                                                <t t-if="p.product_tmpl_id.secondary_uom and p.product_tmpl_id.secondary_uom_id">
-                                                    <option t-att-value="p.product_tmpl_id.secondary_uom_id.id"><t t-esc="p.product_tmpl_id.secondary_uom_id.name"/></option>
+                                                <option value="base"><t t-esc="p.uom_id.name"/></option>
+                                                <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
+                                                    <option value="alt"><t t-esc="p.product_tmpl_id.alternate_unit_of_measure.name"/> (×<t t-esc="p.product_tmpl_id.conversion_rate"/>)</option>
                                                 </t>
                                             </select>
                                         </td>
@@ -279,9 +279,9 @@
                                         </td>
                                         <td>
                                             <select t-attf-name="uom_{{p.id}}" class="form-select">
-                                                <option t-att-value="p.uom_id.id"><t t-esc="p.uom_id.name"/></option>
-                                                <t t-if="p.product_tmpl_id.secondary_uom and p.product_tmpl_id.secondary_uom_id">
-                                                    <option t-att-value="p.product_tmpl_id.secondary_uom_id.id"><t t-esc="p.product_tmpl_id.secondary_uom_id.name"/></option>
+                                                <option value="base"><t t-esc="p.uom_id.name"/></option>
+                                                <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
+                                                    <option value="alt"><t t-esc="p.product_tmpl_id.alternate_unit_of_measure.name"/> (×<t t-esc="p.product_tmpl_id.conversion_rate"/>)</option>
                                                 </t>
                                             </select>
                                         </td>

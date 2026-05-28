@@ -29,20 +29,21 @@ class HHPortalOrders(CustomerPortal):
             ('active', '=', True),
         ], limit=1)
 
-    def _resolve_line_uom(self, product, post):
-        """Return the uom.uom id chosen for this product line, validated to
-        be either the product's primary UoM or its configured secondary
-        (alternate) UoM. Falls back to the product's primary UoM."""
-        primary = product.uom_id
+    def _convert_line_qty(self, product, entered_qty, post):
+        """Resolve the chosen UoM for a product line and return
+        (product_uom_id, qty_in_base_uom).
+
+        The line is always stored in the product's base UoM. When the
+        portal user picks the product's 'Alternate Unit of Measure', the
+        entered quantity is converted to the base UoM by multiplying by
+        the product's Conversion Rate (base_qty = entered * rate), since
+        the alternate UoM is a free-form unit not tied to Odoo's UoM
+        categories."""
         tmpl = product.product_tmpl_id
-        valid = {primary.id}
-        if tmpl.secondary_uom and tmpl.secondary_uom_id:
-            valid.add(tmpl.secondary_uom_id.id)
-        try:
-            chosen = int(post.get('uom_%d' % product.id))
-        except (TypeError, ValueError):
-            chosen = primary.id
-        return chosen if chosen in valid else primary.id
+        choice = post.get('uom_%d' % product.id)
+        if choice == 'alt' and tmpl.alternate_unit_of_measure and tmpl.conversion_rate:
+            return product.uom_id.id, entered_qty * tmpl.conversion_rate
+        return product.uom_id.id, entered_qty
 
     def _sorted_products(self, products):
         """Sort products by POS category name, then internal reference."""
@@ -140,8 +141,18 @@ class HHPortalOrders(CustomerPortal):
         if not line_qty:
             return request.redirect('/my/upload-sales?error=no-qty')
 
-        products = request.env['product.product'].sudo().browse(list(line_qty))
-        line_uom = {p.id: self._resolve_line_uom(p, post) for p in products}
+        products = {
+            p.id: p for p in
+            request.env['product.product'].sudo().browse(list(line_qty))
+        }
+        so_lines = []
+        for pid, qty in line_qty.items():
+            uom_id, base_qty = self._convert_line_qty(products[pid], qty, post)
+            so_lines.append((0, 0, {
+                'product_id': pid,
+                'product_uom_qty': base_qty,
+                'product_uom': uom_id,
+            }))
 
         SO = request.env['sale.order'].sudo()
         try:
@@ -151,14 +162,7 @@ class HHPortalOrders(CustomerPortal):
                 'company_id': HOYMAY_COMPANY_ID,
                 'date_order': date_order + ' 12:00:00',
                 'is_portal_record_upload': True,
-                'order_line': [
-                    (0, 0, {
-                        'product_id': pid,
-                        'product_uom_qty': qty,
-                        'product_uom': line_uom[pid],
-                    })
-                    for pid, qty in line_qty.items()
-                ],
+                'order_line': so_lines,
             })
             so.with_company(HOYMAY_COMPANY_ID).action_confirm()
         except Exception as e:
@@ -240,8 +244,10 @@ class HHPortalOrders(CustomerPortal):
         if not line_qty:
             return request.redirect('/my/place-order?error=no-qty')
 
-        products = request.env['product.product'].sudo().browse(list(line_qty))
-        line_uom = {p.id: self._resolve_line_uom(p, post) for p in products}
+        products = {
+            p.id: p for p in
+            request.env['product.product'].sudo().browse(list(line_qty))
+        }
 
         PO = request.env['purchase.order'].sudo()
         date_planned_str = commitment_date + ' 12:00:00'
@@ -253,6 +259,16 @@ class HHPortalOrders(CustomerPortal):
             _logger.error("Portal place-order: no Dropship picking type for Hoymay (company %s)",
                           HOYMAY_COMPANY_ID)
             return request.redirect('/my/place-order?error=submit-failed')
+
+        po_lines = []
+        for pid, qty in line_qty.items():
+            uom_id, base_qty = self._convert_line_qty(products[pid], qty, post)
+            po_lines.append((0, 0, {
+                'product_id': pid,
+                'product_qty': base_qty,
+                'product_uom': uom_id,
+                'date_planned': date_planned_str,
+            }))
         try:
             po = PO.with_company(HOYMAY_COMPANY_ID).create({
                 'company_id': HOYMAY_COMPANY_ID,
@@ -260,15 +276,7 @@ class HHPortalOrders(CustomerPortal):
                 'dest_address_id': control.partner_id.id,
                 'picking_type_id': dropship_pt.id,
                 'date_planned': date_planned_str,
-                'order_line': [
-                    (0, 0, {
-                        'product_id': pid,
-                        'product_qty': qty,
-                        'product_uom': line_uom[pid],
-                        'date_planned': date_planned_str,
-                    })
-                    for pid, qty in line_qty.items()
-                ],
+                'order_line': po_lines,
             })
             po.with_company(HOYMAY_COMPANY_ID).button_confirm()
         except Exception as e:
