@@ -116,12 +116,13 @@
                                 <th>Name</th>
                                 <th>包裝規格</th>
                                 <th style="width: 130px;" class="text-end">Quantity</th>
+                                <th style="width: 140px;">單位 / Unit</th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="grouped_products" t-as="group">
                                 <tr class="table-secondary">
-                                    <td colspan="5" class="fw-bold" style="background-color: #E7EAEF;">
+                                    <td colspan="6" class="fw-bold" style="background-color: #E7EAEF;">
                                         <t t-if="group['code']">
                                             <span class="badge bg-primary me-2" style="font-family: monospace; font-size: 0.9em;">
                                                 <t t-esc="group['code']"/>
@@ -142,12 +143,20 @@
                                                    class="form-control text-end"
                                                    placeholder="0"/>
                                         </td>
+                                        <td>
+                                            <select t-attf-name="uom_{{p.id}}" class="form-select">
+                                                <option t-att-value="p.uom_id.id"><t t-esc="p.uom_id.name"/></option>
+                                                <t t-if="p.product_tmpl_id.secondary_uom and p.product_tmpl_id.secondary_uom_id">
+                                                    <option t-att-value="p.product_tmpl_id.secondary_uom_id.id"><t t-esc="p.product_tmpl_id.secondary_uom_id.name"/></option>
+                                                </t>
+                                            </select>
+                                        </td>
                                     </tr>
                                 </t>
                             </t>
                             <t t-if="not grouped_products">
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         產品列表為空 / No products configured for your account.
                                     </td>
                                 </tr>
@@ -241,12 +250,13 @@
                                 <th>Name</th>
                                 <th>包裝規格</th>
                                 <th style="width: 130px;" class="text-end">Quantity</th>
+                                <th style="width: 140px;">單位 / Unit</th>
                             </tr>
                         </thead>
                         <tbody>
                             <t t-foreach="grouped_products" t-as="group">
                                 <tr class="table-secondary">
-                                    <td colspan="5" class="fw-bold" style="background-color: #E7EAEF;">
+                                    <td colspan="6" class="fw-bold" style="background-color: #E7EAEF;">
                                         <t t-if="group['code']">
                                             <span class="badge bg-primary me-2" style="font-family: monospace; font-size: 0.9em;">
                                                 <t t-esc="group['code']"/>
@@ -267,12 +277,20 @@
                                                    class="form-control text-end"
                                                    placeholder="0"/>
                                         </td>
+                                        <td>
+                                            <select t-attf-name="uom_{{p.id}}" class="form-select">
+                                                <option t-att-value="p.uom_id.id"><t t-esc="p.uom_id.name"/></option>
+                                                <t t-if="p.product_tmpl_id.secondary_uom and p.product_tmpl_id.secondary_uom_id">
+                                                    <option t-att-value="p.product_tmpl_id.secondary_uom_id.id"><t t-esc="p.product_tmpl_id.secondary_uom_id.name"/></option>
+                                                </t>
+                                            </select>
+                                        </td>
                                     </tr>
                                 </t>
                             </t>
                             <t t-if="not grouped_products">
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted py-4">
+                                    <td colspan="6" class="text-center text-muted py-4">
                                         產品列表為空 / No products configured for your account.
                                     </td>
                                 </tr>

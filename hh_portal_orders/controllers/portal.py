@@ -29,6 +29,21 @@ class HHPortalOrders(CustomerPortal):
             ('active', '=', True),
         ], limit=1)
 
+    def _resolve_line_uom(self, product, post):
+        """Return the uom.uom id chosen for this product line, validated to
+        be either the product's primary UoM or its configured secondary
+        (alternate) UoM. Falls back to the product's primary UoM."""
+        primary = product.uom_id
+        tmpl = product.product_tmpl_id
+        valid = {primary.id}
+        if tmpl.secondary_uom and tmpl.secondary_uom_id:
+            valid.add(tmpl.secondary_uom_id.id)
+        try:
+            chosen = int(post.get('uom_%d' % product.id))
+        except (TypeError, ValueError):
+            chosen = primary.id
+        return chosen if chosen in valid else primary.id
+
     def _sorted_products(self, products):
         """Sort products by POS category name, then internal reference."""
         def key(p):
@@ -125,6 +140,9 @@ class HHPortalOrders(CustomerPortal):
         if not line_qty:
             return request.redirect('/my/upload-sales?error=no-qty')
 
+        products = request.env['product.product'].sudo().browse(list(line_qty))
+        line_uom = {p.id: self._resolve_line_uom(p, post) for p in products}
+
         SO = request.env['sale.order'].sudo()
         try:
             so = SO.with_company(HOYMAY_COMPANY_ID).create({
@@ -134,7 +152,11 @@ class HHPortalOrders(CustomerPortal):
                 'date_order': date_order + ' 12:00:00',
                 'is_portal_record_upload': True,
                 'order_line': [
-                    (0, 0, {'product_id': pid, 'product_uom_qty': qty})
+                    (0, 0, {
+                        'product_id': pid,
+                        'product_uom_qty': qty,
+                        'product_uom': line_uom[pid],
+                    })
                     for pid, qty in line_qty.items()
                 ],
             })
@@ -218,6 +240,9 @@ class HHPortalOrders(CustomerPortal):
         if not line_qty:
             return request.redirect('/my/place-order?error=no-qty')
 
+        products = request.env['product.product'].sudo().browse(list(line_qty))
+        line_uom = {p.id: self._resolve_line_uom(p, post) for p in products}
+
         PO = request.env['purchase.order'].sudo()
         date_planned_str = commitment_date + ' 12:00:00'
         dropship_pt = request.env['stock.picking.type'].sudo().search([
@@ -239,6 +264,7 @@ class HHPortalOrders(CustomerPortal):
                     (0, 0, {
                         'product_id': pid,
                         'product_qty': qty,
+                        'product_uom': line_uom[pid],
                         'date_planned': date_planned_str,
                     })
                     for pid, qty in line_qty.items()
