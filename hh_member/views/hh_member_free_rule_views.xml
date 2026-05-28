@@ -10,7 +10,8 @@
                 <field name="name"/>
                 <field name="threshold_qty"/>
                 <field name="once_per_member" widget="boolean_toggle"/>
-                <field name="free_product_id"/>
+                <field name="free_product_ids" widget="many2many_tags" optional="show"/>
+                <field name="free_category_ids" widget="many2many_tags" optional="show"/>
                 <field name="active" widget="boolean_toggle"/>
                 <field name="company_id" optional="hide"/>
             </list>
@@ -34,9 +35,7 @@
                             <field name="company_id"/>
                             <field name="active"/>
                         </group>
-                        <group string="贈品 / Free Product">
-                            <field name="free_product_id"
-                                   options="{'no_create': True}"/>
+                        <group string="優惠券計劃 / Coupon Program">
                             <field name="loyalty_program_id" readonly="1"
                                    options="{'no_open': True}"/>
                         </group>
@@ -49,6 +48,15 @@
                         </page>
                         <page string="合資格產品類別" name="qualifying_categories">
                             <field name="qualifying_category_ids"
+                                   widget="many2many_tags"/>
+                        </page>
+                        <page string="免費贈品 (產品)" name="free_products">
+                            <field name="free_product_ids"
+                                   widget="many2many_tags"
+                                   options="{'no_create': True}"/>
+                        </page>
+                        <page string="免費贈品 (類別)" name="free_categories">
+                            <field name="free_category_ids"
                                    widget="many2many_tags"/>
                         </page>
                     </notebook>

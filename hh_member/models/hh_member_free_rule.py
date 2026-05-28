@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 
 HOYMAY_COMPANY_ID = 1
 
@@ -31,11 +32,21 @@ class HHMemberFreeRule(models.Model):
         default=10,
         help="Accumulated qualifying units needed to grant one free product.",
     )
-    free_product_id = fields.Many2one(
+    # ── Free gift: explicit products and/or a category pool ──────────────
+    free_product_ids = fields.Many2many(
         'product.product',
+        'hh_member_free_rule_freeprod_rel',
+        'rule_id', 'product_id',
         string='免費贈品',
-        required=True,
-        ondelete='restrict',
+        help="The member may pick one of these as the free gift.",
+    )
+    free_category_ids = fields.Many2many(
+        'product.category',
+        'hh_member_free_rule_freecat_rel',
+        'rule_id', 'category_id',
+        string='免費贈品類別',
+        help="Any POS-sellable product in these categories (or sub-categories) "
+             "is also offered as a free-gift choice.",
     )
     once_per_member = fields.Boolean(
         string='每位會員只可享用一次',
@@ -62,10 +73,34 @@ class HHMemberFreeRule(models.Model):
 
     @api.constrains('threshold_qty')
     def _check_threshold_qty(self):
-        from odoo.exceptions import ValidationError
         for rec in self:
             if rec.threshold_qty <= 0:
                 raise ValidationError("所需數量 (X) 必須大於 0。")
+
+    @api.constrains('free_product_ids', 'free_category_ids')
+    def _check_free_gift_defined(self):
+        for rec in self:
+            if not rec.free_product_ids and not rec.free_category_ids:
+                raise ValidationError("必須設定至少一項免費贈品（產品或類別）。")
+
+    # ------------------------------------------------------------------
+    # Free-gift product pool (explicit + category-expanded)
+    # ------------------------------------------------------------------
+    def _reward_product_recordset(self):
+        """Resolve the set of products offered as the free gift: the explicit
+        list plus every POS-sellable product whose category (or a
+        sub-category) is in free_category_ids."""
+        self.ensure_one()
+        products = self.free_product_ids
+        if self.free_category_ids:
+            cat_ids = self.env['product.category'].sudo().search([
+                ('id', 'child_of', self.free_category_ids.ids),
+            ]).ids
+            products |= self.env['product.product'].sudo().search([
+                ('categ_id', 'in', cat_ids),
+                ('available_in_pos', '=', True),
+            ])
+        return products
 
     # ------------------------------------------------------------------
     # Backing loyalty.program (coupon, free-product reward)
@@ -79,17 +114,20 @@ class HHMemberFreeRule(models.Model):
 
     def write(self, vals):
         res = super().write(vals)
-        if any(k in vals for k in ('name', 'free_product_id', 'active', 'company_id')):
+        sync_keys = ('name', 'free_product_ids', 'free_category_ids',
+                     'active', 'company_id')
+        if any(k in vals for k in sync_keys):
             for rule in self:
                 rule._sync_loyalty_program()
         return res
 
     def _sync_loyalty_program(self):
-        """Create or update the backing coupon program so a granted coupon
-        gives one free unit of free_product_id at no charge, redeemable in
-        POS."""
+        """Create or update the backing coupon program. The single reward is
+        a free product chosen from _reward_product_recordset() (Odoo prompts
+        the cashier to pick one when multiple are offered), redeemable in POS."""
         self.ensure_one()
-        if not self.free_product_id:
+        reward_products = self._reward_product_recordset()
+        if not reward_products:
             return
         Program = self.env['loyalty.program'].sudo()
         prog_vals = {
@@ -99,10 +137,15 @@ class HHMemberFreeRule(models.Model):
             'applies_on': 'current',
             'company_id': self.company_id.id,
             'active': self.active,
-            # Make the coupon redeemable in POS. pos_config_ids left empty =
-            # available in every POS session; the coupon is partner-bound so
-            # it only applies when the issued member is the order's customer.
+            # Redeemable in every POS session; coupon is partner-bound.
             'pos_ok': True,
+        }
+        reward_vals = {
+            'reward_type': 'product',
+            'reward_product_id': reward_products[0].id,
+            'reward_product_ids': [(6, 0, reward_products.ids)],
+            'reward_product_qty': 1,
+            'required_points': 1,
         }
         prog = self.loyalty_program_id
         if not prog:
@@ -114,30 +157,20 @@ class HHMemberFreeRule(models.Model):
                 'minimum_qty': 0,
                 'minimum_amount': 0.0,
             })
-            self.env['loyalty.reward'].sudo().create({
-                'program_id': prog.id,
-                'reward_type': 'product',
-                'reward_product_id': self.free_product_id.id,
-                'reward_product_qty': 1,
-                'required_points': 1,
-            })
+            reward_vals['program_id'] = prog.id
+            self.env['loyalty.reward'].sudo().create(reward_vals)
             self.with_context(skip_program_sync=True).loyalty_program_id = prog.id
         else:
             prog.write(prog_vals)
             reward = prog.reward_ids[:1]
             if reward:
-                reward.sudo().write({
-                    'reward_type': 'product',
-                    'reward_product_id': self.free_product_id.id,
-                    'reward_product_qty': 1,
-                    'required_points': 1,
-                })
+                reward.sudo().write(reward_vals)
 
     def _issue_free_coupon(self, partner):
-        """Issue one free-product coupon (loyalty.card) to the member."""
+        """Refresh the gift pool (catches new category products) and issue one
+        free-product coupon (loyalty.card) to the member."""
         self.ensure_one()
-        if not self.loyalty_program_id:
-            self._sync_loyalty_program()
+        self._sync_loyalty_program()
         if not self.loyalty_program_id:
             return self.env['loyalty.card']
         return self.env['loyalty.card'].sudo().create({
