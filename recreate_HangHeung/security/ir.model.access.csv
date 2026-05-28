@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_customer_category,access.customer.category,model_customer_category,base.group_user,1,1,1,1
 access_reason_code,access.reason.code,model_reason_code,,1,1,1,1
 access_wizard_code,access.wizard.code,model_wizard_code,,1,1,1,1
+access_consignee_warehouse_wizard,access.consignee.warehouse.wizard,model_consignee_warehouse_wizard,stock.group_stock_manager,1,1,1,1

@@ -41,6 +41,14 @@ class PortalOrderControl(models.Model):
         help="Only these products will appear on this customer's "
              "portal order pages.",
     )
+    warehouse_id = fields.Many2one(
+        'stock.warehouse',
+        string='Consignee Warehouse',
+        compute='_compute_warehouse_id',
+        store=False,
+        help="The consignee warehouse linked to this customer "
+             "(matched by partner and company).",
+    )
     product_count = fields.Integer(
         compute='_compute_product_count',
         store=False,
@@ -63,6 +71,18 @@ class PortalOrderControl(models.Model):
     def _compute_product_count(self):
         for rec in self:
             rec.product_count = len(rec.product_ids)
+
+    @api.depends('partner_id', 'company_id')
+    def _compute_warehouse_id(self):
+        Warehouse = self.env['stock.warehouse'].sudo()
+        for rec in self:
+            wh = self.env['stock.warehouse']
+            if rec.partner_id:
+                domain = [('partner_id', '=', rec.partner_id.id)]
+                if rec.company_id:
+                    domain.append(('company_id', '=', rec.company_id.id))
+                wh = Warehouse.search(domain, limit=1)
+            rec.warehouse_id = wh.id if wh else False
 
     def name_get(self):
         return [(rec.id, rec.partner_id.display_name) for rec in self]

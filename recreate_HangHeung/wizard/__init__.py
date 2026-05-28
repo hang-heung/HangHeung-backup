@@ -1,1 +1,1 @@
-from . import wizard_open
+from . import wizard_open, consignee_warehouse

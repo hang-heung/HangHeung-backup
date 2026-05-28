@@ -3,7 +3,7 @@
 
 {
     'name': 'Hang Heung Customizations',
-    'version': '1.0.53',
+    'version': '1.0.54',
     'summary': 'Includes all Hang Heung customizations',
     'description': """
         This module contains all of Hang Heung customizations.
@@ -26,6 +26,7 @@
         "views/pos_payment_method.xml",
         "views/delivery_slip_report_inherit.xml",
         "wizard/wizard_open.xml",
+        "wizard/consignee_warehouse.xml",
         "views/purchase_order_view.xml",
         # "views/custom_backorder.xml",
         "views/purchase_order_report_inherit.xml",
