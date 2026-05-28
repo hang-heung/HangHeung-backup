@@ -40,12 +40,20 @@ class PosOrder(models.Model):
             if qty <= 0:
                 continue
             progress = Progress._get_or_create(partner, rule)
+            # Once-per-member: a member who has already been granted this
+            # rule can never benefit again.
+            if rule.once_per_member and progress.grant_count >= 1:
+                continue
             progress.accumulated_qty += qty
             while rule.threshold_qty > 0 and progress.accumulated_qty >= rule.threshold_qty:
                 rule._issue_free_coupon(partner)
                 progress.accumulated_qty -= rule.threshold_qty
                 progress.grant_count += 1
                 progress.last_grant_date = fields.Datetime.now()
+                if rule.once_per_member:
+                    # Cap at a single lifetime grant even if this one order
+                    # crossed the threshold multiple times.
+                    break
 
     def _count_qualifying_units(self, rule):
         """Sum the units of qualifying products in this order's non-reward

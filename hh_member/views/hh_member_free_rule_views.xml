@@ -9,6 +9,7 @@
                 <field name="sequence" widget="handle"/>
                 <field name="name"/>
                 <field name="threshold_qty"/>
+                <field name="once_per_member" widget="boolean_toggle"/>
                 <field name="free_product_id"/>
                 <field name="active" widget="boolean_toggle"/>
                 <field name="company_id" optional="hide"/>
@@ -29,6 +30,7 @@
                     <group>
                         <group string="條件 / Condition">
                             <field name="threshold_qty"/>
+                            <field name="once_per_member"/>
                             <field name="company_id"/>
                             <field name="active"/>
                         </group>

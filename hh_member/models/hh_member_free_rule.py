@@ -37,6 +37,13 @@ class HHMemberFreeRule(models.Model):
         required=True,
         ondelete='restrict',
     )
+    once_per_member = fields.Boolean(
+        string='每位會員只可享用一次',
+        default=False,
+        help="If ticked, each member can be granted this promotion only once "
+             "(lifetime). After the first free product, the member can never "
+             "use this rule again.",
+    )
     active = fields.Boolean(default=True)
     company_id = fields.Many2one(
         'res.company',
