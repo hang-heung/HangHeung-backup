@@ -92,6 +92,10 @@ class HHMemberFreeRule(models.Model):
             'applies_on': 'current',
             'company_id': self.company_id.id,
             'active': self.active,
+            # Make the coupon redeemable in POS. pos_config_ids left empty =
+            # available in every POS session; the coupon is partner-bound so
+            # it only applies when the issued member is the order's customer.
+            'pos_ok': True,
         }
         prog = self.loyalty_program_id
         if not prog:
