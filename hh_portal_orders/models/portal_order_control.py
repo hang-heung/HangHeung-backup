@@ -84,5 +84,18 @@ class PortalOrderControl(models.Model):
                 wh = Warehouse.search(domain, limit=1)
             rec.warehouse_id = wh.id if wh else False
 
+    def copy_data(self, default=None):
+        default = dict(default or {})
+        vals_list = super().copy_data(default=default)
+        # The partner_unique constraint forbids two control records on the
+        # same partner, so a plain duplicate would fail. Instead, copy the
+        # partner too (res.partner.copy names it "<name> (copy)") and point
+        # the duplicated control record at that new partner.
+        if 'partner_id' not in default:
+            for rec, vals in zip(self, vals_list):
+                if rec.partner_id:
+                    vals['partner_id'] = rec.partner_id.copy().id
+        return vals_list
+
     def name_get(self):
         return [(rec.id, rec.partner_id.display_name) for rec in self]
