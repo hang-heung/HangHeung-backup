@@ -2,6 +2,50 @@
 <odoo>
 
     <!-- ===========================================================
+         Mobile-responsive styling for the order tables. On phones the
+         table header is hidden and each product row becomes a stacked
+         "card" with the column name shown as a label before each value.
+         =========================================================== -->
+    <template id="hh_portal_order_table_style" name="HH Portal Order Table Mobile Style">
+        <style>
+            @media (max-width: 767.98px) {
+                .hh-order-table thead { display: none; }
+                .hh-order-table, .hh-order-table tbody,
+                .hh-order-table tr, .hh-order-table td { display: block; width: 100%; }
+                .hh-order-table tr {
+                    margin-bottom: 1rem;
+                    border: 1px solid #dee2e6;
+                    border-radius: .5rem;
+                    overflow: hidden;
+                }
+                .hh-order-table td {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 1rem;
+                    border: 0;
+                    border-bottom: 1px solid #f1f1f1;
+                    text-align: right;
+                    padding: .5rem .75rem;
+                }
+                .hh-order-table tr td:last-child { border-bottom: 0; }
+                .hh-order-table td::before {
+                    content: attr(data-label);
+                    font-weight: 600;
+                    color: #6c757d;
+                    text-align: left;
+                    flex: 0 0 42%;
+                }
+                .hh-order-table td > .form-control,
+                .hh-order-table td > .form-select { flex: 1 1 auto; min-width: 0; }
+                /* category-header &amp; empty-state rows span the whole card */
+                .hh-order-table td[colspan] { text-align: left; }
+                .hh-order-table td[colspan]::before { content: none; }
+            }
+        </style>
+    </template>
+
+    <!-- ===========================================================
          Portal home tiles: two big cards linking to the two portal
          pages, shown only when the logged-in user has a
          portal.order.control record.
@@ -108,7 +152,8 @@
                         </div>
                     </div>
 
-                    <table class="table table-bordered table-hover align-middle">
+                    <t t-call="hh_portal_orders.hh_portal_order_table_style"/>
+                    <table class="table table-bordered table-hover align-middle hh-order-table">
                         <thead class="table-light">
                             <tr>
                                 <th>Internal Reference</th>
@@ -133,17 +178,17 @@
                                 </tr>
                                 <t t-foreach="group['products']" t-as="p">
                                     <tr>
-                                        <td><t t-esc="p.default_code or ''"/></td>
-                                        <td><t t-esc="p.old_item_number or ''"/></td>
-                                        <td><t t-esc="p.name"/></td>
-                                        <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
-                                        <td>
+                                        <td data-label="Internal Reference"><t t-esc="p.default_code or ''"/></td>
+                                        <td data-label="Old Item Code"><t t-esc="p.old_item_number or ''"/></td>
+                                        <td data-label="Name"><t t-esc="p.name"/></td>
+                                        <td data-label="包裝規格"><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
+                                        <td data-label="Quantity">
                                             <input type="number" min="0" step="any"
                                                    t-attf-name="qty_{{p.id}}"
                                                    class="form-control text-end"
                                                    placeholder="0"/>
                                         </td>
-                                        <td>
+                                        <td data-label="單位 / Unit">
                                             <select t-attf-name="uom_{{p.id}}" class="form-select">
                                                 <option value="base"><t t-esc="p.uom_id.name"/></option>
                                                 <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
@@ -242,7 +287,8 @@
                         </div>
                     </div>
 
-                    <table class="table table-bordered table-hover align-middle">
+                    <t t-call="hh_portal_orders.hh_portal_order_table_style"/>
+                    <table class="table table-bordered table-hover align-middle hh-order-table">
                         <thead class="table-light">
                             <tr>
                                 <th>Internal Reference</th>
@@ -267,17 +313,17 @@
                                 </tr>
                                 <t t-foreach="group['products']" t-as="p">
                                     <tr>
-                                        <td><t t-esc="p.default_code or ''"/></td>
-                                        <td><t t-esc="p.old_item_number or ''"/></td>
-                                        <td><t t-esc="p.name"/></td>
-                                        <td><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
-                                        <td>
+                                        <td data-label="Internal Reference"><t t-esc="p.default_code or ''"/></td>
+                                        <td data-label="Old Item Code"><t t-esc="p.old_item_number or ''"/></td>
+                                        <td data-label="Name"><t t-esc="p.name"/></td>
+                                        <td data-label="包裝規格"><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
+                                        <td data-label="Quantity">
                                             <input type="number" min="0" step="any"
                                                    t-attf-name="qty_{{p.id}}"
                                                    class="form-control text-end"
                                                    placeholder="0"/>
                                         </td>
-                                        <td>
+                                        <td data-label="單位 / Unit">
                                             <select t-attf-name="uom_{{p.id}}" class="form-select">
                                                 <option value="base"><t t-esc="p.uom_id.name"/></option>
                                                 <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
