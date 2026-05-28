@@ -70,6 +70,15 @@ class HHMemberFreeRule(models.Model):
         help="Auto-managed coupon program that delivers the free product "
              "when a granted coupon is applied in POS.",
     )
+    gift_tag_id = fields.Many2one(
+        'product.tag',
+        string='贈品產品標籤',
+        readonly=True,
+        copy=False,
+        help="Auto-managed product tag that holds the gift pool when more "
+             "than one free product is offered (Odoo loyalty multi-product "
+             "rewards are tag-driven).",
+    )
 
     @api.constrains('threshold_qty')
     def _check_threshold_qty(self):
@@ -123,14 +132,44 @@ class HHMemberFreeRule(models.Model):
                 rule._sync_loyalty_program()
         return res
 
+    def _ensure_gift_tag(self):
+        """Return (creating if needed) the dedicated product.tag used to hold
+        the gift pool for multi-product rewards."""
+        self.ensure_one()
+        Tag = self.env['product.tag'].sudo()
+        name = f'[會員贈品] {self.name}'
+        tag = self.gift_tag_id
+        if not tag:
+            tag = Tag.create({'name': name})
+            self.with_context(skip_program_sync=True).gift_tag_id = tag.id
+        elif tag.name != name:
+            tag.write({'name': name})
+        return tag
+
     def _sync_loyalty_program(self):
-        """Create or update the backing coupon program. The single reward is
-        a free product chosen from _reward_product_recordset() (Odoo prompts
-        the cashier to pick one when multiple are offered), redeemable in POS."""
+        """Create or update the backing coupon program. The reward is a free
+        product; when more than one product is offered, a dedicated product
+        tag drives Odoo's multi-product (cashier-choice) reward."""
         self.ensure_one()
         reward_products = self._reward_product_recordset()
         if not reward_products:
             return
+
+        reward_vals = {
+            'reward_type': 'product',
+            'reward_product_id': reward_products[0].id,
+            'reward_product_qty': 1,
+            'required_points': 1,
+        }
+        if len(reward_products) > 1:
+            tag = self._ensure_gift_tag()
+            tag.sudo().write({
+                'product_template_ids': [(6, 0, reward_products.product_tmpl_id.ids)],
+            })
+            reward_vals['reward_product_tag_id'] = tag.id
+        else:
+            reward_vals['reward_product_tag_id'] = False
+
         Program = self.env['loyalty.program'].sudo()
         prog_vals = {
             'name': f'[會員買X送一] {self.name}',
@@ -141,13 +180,6 @@ class HHMemberFreeRule(models.Model):
             'active': self.active,
             # Redeemable in every POS session; coupon is partner-bound.
             'pos_ok': True,
-        }
-        reward_vals = {
-            'reward_type': 'product',
-            'reward_product_id': reward_products[0].id,
-            'reward_product_ids': [(6, 0, reward_products.ids)],
-            'reward_product_qty': 1,
-            'required_points': 1,
         }
         prog = self.loyalty_program_id
         if not prog:

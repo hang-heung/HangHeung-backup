@@ -1,6 +1,6 @@
 {
     'name': 'Hang Heung Member',
-    'version': '1.0.6',
+    'version': '1.0.7',
     'category': 'Point of Sale',
     'summary': 'HangHeung membership tiers + buy-X-get-free (Hoymay only)',
     'description': """
