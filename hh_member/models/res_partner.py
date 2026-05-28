@@ -22,6 +22,11 @@ class ResPartner(models.Model):
         string='成為會員日期',
         readonly=True,
     )
+    hh_free_progress_ids = fields.One2many(
+        'hh.member.free.progress',
+        'partner_id',
+        string='買X送一進度',
+    )
 
     # ------------------------------------------------------------------
     # Compute: member_tier_id derived from the partner's category_id tags

@@ -1,3 +1,7 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_hh_member_tier_user,hh.member.tier user,model_hh_member_tier,base.group_user,1,0,0,0
 access_hh_member_tier_admin,hh.member.tier admin,model_hh_member_tier,base.group_system,1,1,1,1
+access_hh_member_free_rule_user,hh.member.free.rule user,model_hh_member_free_rule,base.group_user,1,0,0,0
+access_hh_member_free_rule_admin,hh.member.free.rule admin,model_hh_member_free_rule,base.group_system,1,1,1,1
+access_hh_member_free_progress_user,hh.member.free.progress user,model_hh_member_free_progress,base.group_user,1,0,0,0
+access_hh_member_free_progress_admin,hh.member.free.progress admin,model_hh_member_free_progress,base.group_system,1,1,1,1

@@ -18,6 +18,16 @@
                                    invisible="not subscription_date"/>
                         </group>
                     </group>
+                    <separator string="買X送一進度"/>
+                    <field name="hh_free_progress_ids" nolabel="1" readonly="1">
+                        <list string="買X送一進度" create="false" delete="false" edit="false">
+                            <field name="rule_id"/>
+                            <field name="accumulated_qty"/>
+                            <field name="threshold_qty"/>
+                            <field name="grant_count"/>
+                            <field name="last_grant_date"/>
+                        </list>
+                    </field>
                 </page>
             </xpath>
         </field>
