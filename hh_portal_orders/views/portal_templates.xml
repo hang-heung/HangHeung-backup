@@ -61,34 +61,54 @@
                     .o_portal_index_card:has(&gt; a[href*="filterby=invoices"]) { display: none !important; }
                 </style>
                 <div class="row mb-4 hh-portal-tiles">
-                    <div class="col-md-6 mb-3">
-                        <a href="/my/upload-sales"
-                           class="d-block text-decoration-none">
-                            <div class="card border-primary h-100 text-center">
-                                <div class="card-body py-5">
-                                    <h1 class="card-title mb-2"
-                                        style="font-size: 2.4rem; font-weight: bold; color: #AF8489;">
-                                        上載購物紀錄
-                                    </h1>
-                                    <p class="card-text text-muted">Upload Purchase Records</p>
+                    <!-- Hoymay consignees: record-upload + order tiles -->
+                    <t t-if="not hh_portal_is_hangheung">
+                        <div class="col-md-6 mb-3">
+                            <a href="/my/upload-sales"
+                               class="d-block text-decoration-none">
+                                <div class="card border-primary h-100 text-center">
+                                    <div class="card-body py-5">
+                                        <h1 class="card-title mb-2"
+                                            style="font-size: 2.4rem; font-weight: bold; color: #AF8489;">
+                                            上載購物紀錄
+                                        </h1>
+                                        <p class="card-text text-muted">Upload Purchase Records</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <a href="/my/place-order"
-                           class="d-block text-decoration-none">
-                            <div class="card border-secondary h-100 text-center">
-                                <div class="card-body py-5">
-                                    <h1 class="card-title mb-2"
-                                        style="font-size: 2.4rem; font-weight: bold; color: #1F4E79;">
-                                        訂貨單
-                                    </h1>
-                                    <p class="card-text text-muted">Place Order</p>
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <a href="/my/place-order"
+                               class="d-block text-decoration-none">
+                                <div class="card border-secondary h-100 text-center">
+                                    <div class="card-body py-5">
+                                        <h1 class="card-title mb-2"
+                                            style="font-size: 2.4rem; font-weight: bold; color: #1F4E79;">
+                                            訂貨單
+                                        </h1>
+                                        <p class="card-text text-muted">Place Order</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </a>
-                    </div>
+                            </a>
+                        </div>
+                    </t>
+                    <!-- HangHeung consignees (treated as customers): single order tile -->
+                    <t t-else="">
+                        <div class="col-md-6 mb-3 mx-auto">
+                            <a href="/my/place-order"
+                               class="d-block text-decoration-none">
+                                <div class="card border-secondary h-100 text-center">
+                                    <div class="card-body py-5">
+                                        <h1 class="card-title mb-2"
+                                            style="font-size: 2.4rem; font-weight: bold; color: #1F4E79;">
+                                            客戶訂貨單
+                                        </h1>
+                                        <p class="card-text text-muted">Place Order</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </t>
                 </div>
             </t>
         </xpath>
@@ -258,11 +278,11 @@
          =========================================================== -->
     <template id="portal_place_order" name="Portal Place Order (訂貨單)">
         <t t-call="portal.portal_layout">
-            <t t-set="title">訂貨單</t>
+            <t t-set="title" t-value="page_title"/>
             <div class="container my-4">
                 <h1 class="text-center my-4"
                     style="font-size: 3rem; font-weight: bold; color: #1F4E79;">
-                    訂貨單
+                    <t t-esc="page_title"/>
                 </h1>
 
                 <t t-if="error">

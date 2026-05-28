@@ -10,6 +10,7 @@ _logger = logging.getLogger(__name__)
 
 
 HOYMAY_COMPANY_ID = 1
+HANGHEUNG_COMPANY_ID = 3  # HANG HEUNG CAKE SHOP COMPANY LIMITED
 THATS_VENDOR_PARTNER_ID = 8883  # That's Ltd partner in Hoymay's books
 
 
@@ -28,6 +29,13 @@ class HHPortalOrders(CustomerPortal):
             ('partner_id', '=', request.env.user.partner_id.id),
             ('active', '=', True),
         ], limit=1)
+
+    def _is_hangheung_control(self, control):
+        """True when this Portal Order Control belongs to the HangHeung
+        company. HangHeung consignees are treated as plain customers:
+        no record-upload page, and their order creates a HangHeung SO
+        with a normal customer delivery."""
+        return bool(control) and control.company_id.id == HANGHEUNG_COMPANY_ID
 
     def _consignee_warehouse(self, control):
         """Return the consignee's own Hoymay warehouse (matched by the
@@ -107,10 +115,9 @@ class HHPortalOrders(CustomerPortal):
     @http.route('/my/upload-sales', type='http', auth='user', website=True)
     def portal_upload_sales(self, error=None, **kw):
         control = self._get_user_portal_control()
-        if not control:
-            return request.render('hh_portal_orders.portal_no_access', {
-                'page_title': '上載購物紀錄',
-            })
+        if not control or self._is_hangheung_control(control):
+            # HangHeung consignees have no record-upload page.
+            return request.redirect('/my')
         products = self._sorted_products(control.product_ids)
         return request.render('hh_portal_orders.portal_upload_sales', {
             'control': control,
@@ -124,7 +131,7 @@ class HHPortalOrders(CustomerPortal):
                 website=True, methods=['POST'], csrf=True)
     def portal_upload_sales_submit(self, **post):
         control = self._get_user_portal_control()
-        if not control:
+        if not control or self._is_hangheung_control(control):
             return request.redirect('/my')
 
         date_order = (post.get('date_order') or '').strip()
@@ -211,12 +218,13 @@ class HHPortalOrders(CustomerPortal):
             })
         products = self._sorted_products(control.product_ids)
         min_date = (date.today() + timedelta(days=1)).isoformat()
+        page_title = '客戶訂貨單' if self._is_hangheung_control(control) else '訂貨單'
         return request.render('hh_portal_orders.portal_place_order', {
             'control': control,
             'products': products,
             'grouped_products': self._grouped_products(control.product_ids),
             'min_date': min_date,
-            'page_title': '訂貨單',
+            'page_title': page_title,
             'error': error,
         })
 
@@ -262,6 +270,36 @@ class HHPortalOrders(CustomerPortal):
             p.id: p for p in
             request.env['product.product'].sudo().browse(list(line_qty))
         }
+
+        # ----------------------------------------------------------------
+        # HangHeung consignees are plain customers: 客戶訂貨單 creates a
+        # HangHeung sale.order to the portal customer with a normal
+        # customer delivery (no own warehouse, no intercompany PO chain).
+        # ----------------------------------------------------------------
+        if self._is_hangheung_control(control):
+            so_lines = []
+            for pid, qty in line_qty.items():
+                uom_id, base_qty = self._convert_line_qty(products[pid], qty, post)
+                so_lines.append((0, 0, {
+                    'product_id': pid,
+                    'product_uom_qty': base_qty,
+                    'product_uom': uom_id,
+                }))
+            SO = request.env['sale.order'].sudo()
+            try:
+                so = SO.with_company(HANGHEUNG_COMPANY_ID).create({
+                    'partner_id': control.partner_id.id,
+                    'pricelist_id': control.pricelist_id.id,
+                    'company_id': HANGHEUNG_COMPANY_ID,
+                    'commitment_date': commitment_date + ' 12:00:00',
+                    'order_line': so_lines,
+                })
+                so.with_company(HANGHEUNG_COMPANY_ID).action_confirm()
+            except Exception as e:
+                _logger.exception("Portal 客戶訂貨單 submit failed for partner %s: %s",
+                                  control.partner_id.id, e)
+                return request.redirect('/my/place-order?error=submit-failed')
+            return request.redirect(so.get_portal_url())
 
         PO = request.env['purchase.order'].sudo()
         date_planned_str = commitment_date + ' 12:00:00'
@@ -331,6 +369,7 @@ class HHPortalOrders(CustomerPortal):
         values = super()._prepare_home_portal_values(counters)
         control = self._get_user_portal_control()
         values['hh_portal_control'] = control
+        values['hh_portal_is_hangheung'] = self._is_hangheung_control(control)
         return values
 
     # ------------------------------------------------------------------
