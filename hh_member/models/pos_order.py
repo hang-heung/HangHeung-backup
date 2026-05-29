@@ -10,23 +10,21 @@ class PosOrder(models.Model):
     def action_pos_order_paid(self):
         res = super().action_pos_order_paid()
         for order in self:
-            if not (
-                order.partner_id
-                and order.amount_total > 0
-                and order.company_id.id == HOYMAY_COMPANY_ID
-            ):
+            if not (order.partner_id and order.company_id.id == HOYMAY_COMPANY_ID):
                 continue
-            # 1) membership tier re-evaluation
-            order.partner_id._evaluate_tier()
-            # 2) buy-X-get-free accumulation — members (tier holders) only
+            # Tier re-evaluation (spending-based; ignore $0 orders)
+            if order.amount_total > 0:
+                order.partner_id._evaluate_tier()
+            # Buy-X-get-free reconciliation — members (tier holders) only
             if order.partner_id.member_tier_id:
-                order._accumulate_free_product_progress()
+                order._reconcile_member_free_progress()
         return res
 
-    def _accumulate_free_product_progress(self):
-        """Add this order's qualifying units to each active rule's per-member
-        accumulator, and issue a free-product coupon every time the threshold
-        is crossed (counter reset by threshold on each grant)."""
+    def _reconcile_member_free_progress(self):
+        """Update each rule's per-member carry-over counter from this order:
+        add qualifying units purchased, subtract threshold per free gift given
+        (flagged lines), and record grants. Free/reward lines never count as
+        qualifying purchases."""
         self.ensure_one()
         partner = self.partner_id
         Rule = self.env['hh.member.free.rule'].sudo()
@@ -36,41 +34,23 @@ class PosOrder(models.Model):
             ('company_id', '=', HOYMAY_COMPANY_ID),
         ])
         for rule in rules:
-            qty = self._count_qualifying_units(rule)
-            if qty <= 0:
-                continue
-            progress = Progress._get_or_create(partner, rule)
-            # Once-per-member: a member who has already been granted this
-            # rule can never benefit again.
-            if rule.once_per_member and progress.grant_count >= 1:
-                continue
-            progress.accumulated_qty += qty
-            while rule.threshold_qty > 0 and progress.accumulated_qty >= rule.threshold_qty:
-                rule._issue_free_coupon(partner)
-                progress.accumulated_qty -= rule.threshold_qty
-                progress.grant_count += 1
-                progress.last_grant_date = fields.Datetime.now()
-                if rule.once_per_member:
-                    # Cap at a single lifetime grant even if this one order
-                    # crossed the threshold multiple times.
-                    break
+            qualifying = 0
+            free_given = 0
+            for line in self.lines:
+                if line.is_reward_line or line.hh_member_free_rule_id:
+                    # Reward / member-free lines are never qualifying purchases.
+                    if line.hh_member_free_rule_id == rule.id:
+                        free_given += int(line.qty)
+                    continue
+                if line.qty > 0 and rule.line_qualifies(line.product_id):
+                    qualifying += int(line.qty)
 
-    def _count_qualifying_units(self, rule):
-        """Sum the units of qualifying products in this order's non-reward
-        lines. A product qualifies if it is in the rule's explicit product
-        list, or its internal category (or a sub-category) is listed."""
-        self.ensure_one()
-        categ_ids = set()
-        if rule.qualifying_category_ids:
-            categ_ids = set(self.env['product.category'].sudo().search([
-                ('id', 'child_of', rule.qualifying_category_ids.ids),
-            ]).ids)
-        product_ids = set(rule.qualifying_product_ids.ids)
-        total = 0.0
-        for line in self.lines:
-            if line.is_reward_line:
+            if qualifying == 0 and free_given == 0:
                 continue
-            prod = line.product_id
-            if prod.id in product_ids or prod.categ_id.id in categ_ids:
-                total += line.qty
-        return int(total) if total > 0 else 0
+
+            progress = Progress._get_or_create(partner, rule)
+            new_acc = progress.accumulated_qty + qualifying - rule.threshold_qty * free_given
+            progress.accumulated_qty = max(0, new_acc)
+            if free_given:
+                progress.grant_count += free_given
+                progress.last_grant_date = fields.Datetime.now()
