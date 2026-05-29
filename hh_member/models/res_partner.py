@@ -29,6 +29,24 @@ class ResPartner(models.Model):
     )
 
     # ------------------------------------------------------------------
+    # Auto-enrol new individual customers when a zero-threshold tier exists
+    # ------------------------------------------------------------------
+    @api.model_create_multi
+    def create(self, vals_list):
+        partners = super().create(vals_list)
+        # If a registration tier (min_spending <= 0) is configured, a newly
+        # registered individual customer should immediately become a member.
+        has_zero_tier = self.env['hh.member.tier'].sudo().search_count([
+            ('company_id', '=', HOYMAY_COMPANY_ID),
+            ('min_spending', '<=', 0),
+        ])
+        if has_zero_tier:
+            for partner in partners:
+                if partner.partner_share and not partner.is_company:
+                    partner._evaluate_tier()
+        return partners
+
+    # ------------------------------------------------------------------
     # Compute: member_tier_id derived from the partner's category_id tags
     # ------------------------------------------------------------------
     @api.depends('category_id')
