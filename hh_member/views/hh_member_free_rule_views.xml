@@ -35,10 +35,6 @@
                             <field name="company_id"/>
                             <field name="active"/>
                         </group>
-                        <group string="優惠券計劃 / Coupon Program">
-                            <field name="loyalty_program_id" readonly="1"
-                                   options="{'no_open': True}"/>
-                        </group>
                     </group>
                     <notebook>
                         <page string="合資格產品" name="qualifying_products">
@@ -63,8 +59,9 @@
                     <p class="text-muted">
                         產品只要符合「合資格產品」名單，或其產品類別（或子類別）
                         在「合資格產品類別」中，即計入累積數量。會員於好妙 POS
-                        累積購買達所需數量 (X) 後，系統會發出一張免費贈品優惠券，
-                        並把累積數量扣減。
+                        累積購買（跨交易及同一購物車）達所需數量 (X) 後，收銀
+                        可於 POS 加入免費贈品，系統自動以 100% 折扣使其免費，
+                        並扣減累積數量。
                     </p>
                 </sheet>
             </form>
