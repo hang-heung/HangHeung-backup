@@ -22,6 +22,11 @@ class HhProductionAdj(models.Model):
         ('cancelled', 'Cancelled'),
     ], default='draft', string='Status', readonly=True)
 
+    reason_code_id = fields.Many2one(
+        'reason.code', string='Reason Code',
+        help="Reason for this production adjustment.",
+    )
+
     line_ids = fields.One2many('hh.production.adj.line', 'adj_id', string='Adjustment Lines')
 
     @api.model_create_multi

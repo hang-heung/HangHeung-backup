@@ -3,7 +3,7 @@
     'version': '18.0.3.0.0',
     'summary': 'Production Orders and inventory delta adjustment for ad-hoc manufacturing',
     'author': 'Hang Heung Cake Shop',
-    'depends': ['stock'],
+    'depends': ['stock', 'recreate_HangHeung'],
     'data': [
         'security/groups.xml',
         'security/ir.model.access.csv',

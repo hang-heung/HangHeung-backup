@@ -48,6 +48,7 @@
                             <field name="date" readonly="state != 'draft'"/>
                             <field name="consume_warehouse_id" readonly="state != 'draft'" options="{'no_create': True}"/>
                             <field name="produce_warehouse_id" readonly="state != 'draft'" options="{'no_create': True}"/>
+                            <field name="reason_code_id" readonly="state != 'draft'" options="{'no_create': True}"/>
                         </group>
                         <group>
                             <field name="note" readonly="state != 'draft'" placeholder="Optional notes or batch reference..."/>

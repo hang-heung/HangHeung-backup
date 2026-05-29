@@ -32,6 +32,11 @@ class HhProductionOrder(models.Model):
     )
 
 
+    reason_code_id = fields.Many2one(
+        'reason.code', string='Reason Code',
+        help="Reason for this production order.",
+    )
+
     consume_line_ids = fields.One2many(
         'hh.production.order.line', 'order_id',
         domain=[('line_type', '=', 'consume')],
