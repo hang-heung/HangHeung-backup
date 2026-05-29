@@ -1,0 +1,39 @@
+<odoo>
+    <record id="view_oven_transport_wizard" model="ir.ui.view">
+        <field name="name">oven.transport.wizard.form</field>
+        <field name="model">oven.transport.wizard</field>
+        <field name="arch" type="xml">
+            <form string="燒爐及運輸執貨紙">
+                <group>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="report_type" widget="radio"/>
+                </group>
+                <group>
+                    <field name="partner_ids" widget="many2many_tags"
+                          domain="[('type', '=', 'delivery')]"
+                          placeholder="Leave empty for all shops…"
+                          colspan="2"/>
+                </group>
+                <footer>
+                    <button name="print_transport_report"
+                            type="object"
+                            string="Export 運輸執貨紙"
+                            class="btn-primary"/>
+                    <button name="print_oven_report"
+                            type="object"
+                            string="Export 燒爐紙"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_oven_transport_wizard" model="ir.actions.act_window">
+        <field name="name">燒爐及運輸執貨紙</field>
+        <field name="res_model">oven.transport.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

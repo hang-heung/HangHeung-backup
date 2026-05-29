@@ -1,26 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <odoo>
-    <template id="external_layout_standard_inherit"
-              inherit_id="web.external_layout_standard">
+    <data inherit_id="web.external_layout_standard">
 
         <xpath expr="//div[starts-with(@t-attf-class, 'header')]" position="inside">
 
-            <!--  Only apply to report_purchaseorder_document -->
             <t t-if="current_report_name == 'purchase.report_purchaseorder_document' and report_type == 'pdf'">
                 <div class="mt-4" style="font-size:32px;">
                     PO, 採購單 #<span t-field="o.name"/>
                 </div>
             </t>
 
-            <!--  Only apply to report_delivery slip -->
             <t t-if="current_report_name == 'stock.report_deliveryslip' and report_type == 'pdf'">
-                <div class="mt-4" style="font-size:32px;">
-                    <span t-field="o.name">WH/OUT/0001</span>
-                </div>
-                <!--
-                    "Deliver to / Origin Chain" line. Lives in the layout
-                    header so wkhtmltopdf repeats it on every page of a
-                    multi-page delivery slip.
-                -->
                 <t t-set="addr_partner" t-value="(o.move_ids and o.move_ids[0].partner_id) or o.partner_id"/>
                 <t t-set="origin_text" t-value="o.full_origin_chain or o.origin"/>
                 <div t-if="addr_partner or origin_text"
@@ -39,8 +30,7 @@
                 </div>
             </t>
 
-
         </xpath>
 
-    </template>
+    </data>
 </odoo>

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_delivery_report_wizard" model="ir.actions.act_window">
+        <field name="name">Delivery Summary</field>
+        <field name="res_model">report.delivery.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_delivery_report_main"
+              name="Delivery Summary"
+              parent="stock.menu_warehouse_report"
+              action="action_delivery_report_wizard"
+              sequence="11"/>
+</odoo>

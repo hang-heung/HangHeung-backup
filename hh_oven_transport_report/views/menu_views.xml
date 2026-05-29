@@ -1,0 +1,7 @@
+<odoo>
+    <menuitem id="menu_oven_transport_report"
+              name="燒爐及運輸執貨紙"
+              parent="stock.menu_warehouse_report"
+              action="action_oven_transport_wizard"
+              sequence="11"/>
+</odoo>

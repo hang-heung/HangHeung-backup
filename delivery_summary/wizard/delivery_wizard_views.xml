@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_delivery_report_wizard" model="ir.ui.view">
+        <field name="name">report.delivery.wizard.form</field>
+        <field name="model">report.delivery.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Delivery Summary">
+                <group>
+                    <field name="start_date"/>
+                    <field name="end_date"/>
+                    <field name="partner_id"/>
+                </group>
+                <footer>
+                    <button name="print_report"
+                            type="object"
+                            string="Export Excel"
+                            class="btn-primary"/>
+                    <button string="Cancel" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+</odoo>
