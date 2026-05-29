@@ -1,7 +1,13 @@
+import logging
 from datetime import timedelta
 
 from odoo import models, fields, api, _, SUPERUSER_ID
 from odoo.exceptions import ValidationError
+from odoo.tools import float_compare
+
+_logger = logging.getLogger(__name__)
+
+HOYMAY_COMPANY_ID = 1
 
 
 class SaleOrder(models.Model):
@@ -190,3 +196,97 @@ class SaleOrder(models.Model):
                         so_name=so.name, company=so.company_id.name,
                     ))
         return result
+
+
+class SaleOrderLine(models.Model):
+    _inherit = 'sale.order.line'
+
+    def _action_launch_stock_rule(self, previous_product_uom_qty=False):
+        """HH-CUSTOM: B2B單 Sales Orders in Hoymay prefer fulfilling from
+        warehouse stock (WH/Stock). Each storable line is split:
+          * the qty currently free in WH/Stock is procured make-to-stock
+            (forced through the warehouse delivery route -> reserved from
+            WH/Stock, NO purchase order), and
+          * only the shortfall follows the original make-to-order flow
+            (PO to That's via the product's normal route).
+        Non-B2B / non-Hoymay lines keep the standard behaviour.
+        """
+        if self._context.get('skip_procurement'):
+            return True
+
+        precision = self.env['decimal.precision'].precision_get('Product Unit of Measure')
+
+        def _is_b2b_hoymay(line):
+            return (
+                not line.display_type
+                and line.order_id.is_b2b_order
+                and line.order_id.company_id.id == HOYMAY_COMPANY_ID
+                and line.product_id.is_storable
+                and line.state == 'sale'
+                and not line.order_id.locked
+                and line.order_id.warehouse_id.delivery_route_id
+            )
+
+        special = self.filtered(_is_b2b_hoymay)
+        standard = self - special
+        res = True
+        if standard:
+            res = super(SaleOrderLine, standard)._action_launch_stock_rule(
+                previous_product_uom_qty=previous_product_uom_qty)
+        if not special:
+            return res
+
+        procurements = []
+        for line in special:
+            line = line.with_company(line.company_id)
+            qty = line._get_qty_procurement(previous_product_uom_qty)
+            if float_compare(qty, line.product_uom_qty, precision_digits=precision) == 0:
+                continue
+
+            group_id = line._get_procurement_group()
+            if not group_id:
+                group_id = self.env['procurement.group'].create(
+                    line._prepare_procurement_group_vals())
+                line.order_id.procurement_group_id = group_id
+            else:
+                updated_vals = {}
+                if group_id.partner_id != line.order_id.partner_shipping_id:
+                    updated_vals['partner_id'] = line.order_id.partner_shipping_id.id
+                if group_id.move_type != line.order_id.picking_policy:
+                    updated_vals['move_type'] = line.order_id.picking_policy
+                if updated_vals:
+                    group_id.write(updated_vals)
+
+            values = line._prepare_procurement_values(group_id=group_id)
+            product_qty = line.product_uom_qty - qty  # in line.product_uom
+
+            quant_uom = line.product_id.uom_id
+            origin = (f'{line.order_id.name} - {line.order_id.client_order_ref}'
+                      if line.order_id.client_order_ref else line.order_id.name)
+
+            # Work in the product's base UoM for the stock comparison/split.
+            demand_base = line.product_uom._compute_quantity(product_qty, quant_uom)
+            wh = line.order_id.warehouse_id
+            stock_loc = wh.lot_stock_id
+            free = line.product_id.with_context(location=stock_loc.id).free_qty
+            mts_qty = max(0.0, min(free, demand_base))
+            mto_qty = demand_base - mts_qty
+
+            if float_compare(mts_qty, 0.0, precision_digits=precision) > 0:
+                mts_values = dict(values)
+                mts_values['route_ids'] = wh.delivery_route_id
+                procurements += line._create_procurements(
+                    mts_qty, quant_uom, origin, mts_values)
+            if float_compare(mto_qty, 0.0, precision_digits=precision) > 0:
+                procurements += line._create_procurements(
+                    mto_qty, quant_uom, origin, dict(values))
+
+        if procurements:
+            self.env['procurement.group'].run(procurements)
+
+        for order in special.mapped('order_id'):
+            pickings_to_confirm = order.picking_ids.filtered(
+                lambda p: p.state not in ('cancel', 'done'))
+            if pickings_to_confirm:
+                pickings_to_confirm.action_confirm()
+        return res
