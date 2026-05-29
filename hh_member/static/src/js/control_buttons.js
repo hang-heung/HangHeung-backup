@@ -12,8 +12,16 @@ patch(ControlButtons.prototype, {
 
     async hhClickFreeGift() {
         const order = this.pos.get_order();
+        if (!order || !order.get_partner()) {
+            this.notification.add(_t("請先選擇會員（客戶）。"), { type: "warning" });
+            return;
+        }
         const offers = this.hhGetFreeOffers();
         if (!offers.length) {
+            this.notification.add(
+                _t("此會員暫未符合任何免費贈品優惠（累積數量未達標、或已達每人一次上限）。"),
+                { type: "warning" }
+            );
             return;
         }
 

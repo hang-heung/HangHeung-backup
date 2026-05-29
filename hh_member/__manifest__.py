@@ -1,6 +1,6 @@
 {
     'name': 'Hang Heung Member',
-    'version': '1.1.0',
+    'version': '1.1.1',
     'category': 'Point of Sale',
     'summary': 'HangHeung membership tiers + buy-X-get-free (Hoymay only)',
     'description': """
@@ -33,7 +33,9 @@
         'point_of_sale._assets_pos': [
             'hh_member/static/src/js/pos_store.js',
             'hh_member/static/src/js/control_buttons.js',
+            'hh_member/static/src/js/orderline.js',
             'hh_member/static/src/xml/control_buttons.xml',
+            'hh_member/static/src/xml/orderline.xml',
         ],
     },
     'post_init_hook': 'post_init_hook',

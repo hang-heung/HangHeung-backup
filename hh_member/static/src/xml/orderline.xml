@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="hh_member.Orderline" t-inherit="point_of_sale.Orderline" t-inherit-mode="extension">
+        <xpath expr="//li[@t-if=&quot;line.price !== 0 and line.discount and line.discount !== '0' and !props.basic_receipt&quot;]" position="inside">
+            <t t-if="line.hhMemberFree"> (會員換領優惠)</t>
+        </xpath>
+    </t>
+</templates>

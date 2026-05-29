@@ -4,15 +4,25 @@ import { PosStore } from "@point_of_sale/app/store/pos_store";
 
 patch(PosStore.prototype, {
     async setup() {
-        await super.setup(...arguments);
         this.hhMemberRules = [];
         this.hhMemberProgress = {};
+        await super.setup(...arguments);
+    },
+
+    async afterProcessServerData() {
+        await super.afterProcessServerData(...arguments);
+        // Load the active Hoymay rules once the session data is ready.
         try {
             this.hhMemberRules = await this.data.call(
                 "hh.member.free.rule", "get_pos_rules", []
             );
         } catch {
             this.hhMemberRules = [];
+        }
+        // If an order with a partner is already active, prime its progress.
+        const order = this.get_order();
+        if (order && order.get_partner()) {
+            await this.hhLoadMemberProgress(order.get_partner());
         }
     },
 
@@ -44,11 +54,7 @@ patch(PosStore.prototype, {
      */
     hhComputeFreeOffers(order) {
         const offers = [];
-        if (!order) {
-            return offers;
-        }
-        const partner = order.get_partner();
-        if (!partner) {
+        if (!order || !order.get_partner()) {
             return offers;
         }
         const progress = this.hhMemberProgress || {};
