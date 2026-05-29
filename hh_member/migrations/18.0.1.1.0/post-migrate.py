@@ -16,6 +16,8 @@ def migrate(cr, version):
         ])
         if cards:
             cards.unlink()
+        # A program can't be deleted while active — archive first.
+        programs.write({'active': False})
         programs.unlink()
 
     tags = env['product.tag'].sudo().search([
