@@ -62,11 +62,18 @@
         </field>
     </record>
 
+    <!-- Parent grouping menu for all membership configuration -->
+    <menuitem
+        id="menu_hh_member_config_root"
+        name="會員設定"
+        parent="point_of_sale.menu_point_root"
+        sequence="95"/>
+
     <menuitem
         id="menu_hh_member_tier_config"
         name="會員等級"
-        parent="point_of_sale.menu_point_root"
+        parent="menu_hh_member_config_root"
         action="action_hh_member_tier"
-        sequence="95"/>
+        sequence="10"/>
 
 </odoo>
