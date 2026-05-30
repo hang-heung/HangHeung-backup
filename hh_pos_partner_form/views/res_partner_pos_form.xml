@@ -5,10 +5,11 @@
     <record id="view_partner_form_hh_pos_hide" model="ir.ui.view">
         <field name="name">res.partner.form.hh.pos.hide</field>
         <field name="model">res.partner</field>
-        <!-- Inherit recreate_HangHeung's partner view so all custom fields it
-             adds are already present in the assembled tree we target. -->
-        <field name="inherit_id" ref="recreate_HangHeung.view_contact_form_inherit"/>
-        <field name="priority">100</field>
+        <!-- Inherit base; high priority so we run after all other inherits
+             (recreate_HangHeung, account, sale, membership, etc.) and can
+             xpath any field or page they contributed. -->
+        <field name="inherit_id" ref="base.view_partner_form"/>
+        <field name="priority">200</field>
         <field name="arch" type="xml">
 
             <xpath expr="//field[@name='contact_number']" position="attributes">
