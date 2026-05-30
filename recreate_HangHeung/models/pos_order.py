@@ -23,3 +23,19 @@ class PosOrder(models.Model):
         return super(
             PosOrder, self.with_context(hh_pos_protect_hoymay_pickings=True)
         ).sync_from_ui(orders)
+
+    @api.model
+    def search_paid_order_ids(self, config_id, domain, limit, offset):
+        # Standard Odoo strips the config_id filter as soon as the
+        # frontend supplies a search domain, which means a cashier on
+        # one store can see another store's orders in the search
+        # results -- and the limit-30 paging then pushes their own
+        # store's older orders out of reach. Always anchor the search
+        # to the calling config_id.
+        domain = list(domain or [])
+        if not any(
+            isinstance(c, (list, tuple)) and len(c) == 3 and c[0] == 'config_id'
+            for c in domain
+        ):
+            domain = [('config_id', '=', config_id)] + domain
+        return super().search_paid_order_ids(config_id, domain, limit, offset)
