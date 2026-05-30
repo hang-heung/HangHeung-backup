@@ -4,7 +4,7 @@ from datetime import date, timedelta
 from odoo import http, _
 from odoo.exceptions import AccessError
 from odoo.http import request
-from odoo.addons.portal.controllers.portal import CustomerPortal
+from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
 
 _logger = logging.getLogger(__name__)
 
@@ -30,12 +30,12 @@ class HHPortalOrders(CustomerPortal):
             ('active', '=', True),
         ], limit=1)
 
-    def _is_hangheung_control(self, control):
-        """True when this Portal Order Control belongs to the HangHeung
-        company. HangHeung consignees are treated as plain customers:
-        no record-upload page, and their order creates a HangHeung SO
-        with a normal customer delivery."""
-        return bool(control) and control.company_id.id == HANGHEUNG_COMPANY_ID
+    def _is_customer_flow(self, control):
+        """True when this Portal Order Control uses the direct-HangHeung-
+        customer flow (flow_type='customer'). Such customers are treated
+        as plain customers: no record-upload page, and their order creates
+        a HangHeung SO with a normal customer delivery."""
+        return bool(control) and control.flow_type == 'customer'
 
     def _consignee_warehouse(self, control):
         """Return the consignee's own Hoymay warehouse (matched by the
@@ -115,7 +115,7 @@ class HHPortalOrders(CustomerPortal):
     @http.route('/my/upload-sales', type='http', auth='user', website=True)
     def portal_upload_sales(self, error=None, **kw):
         control = self._get_user_portal_control()
-        if not control or self._is_hangheung_control(control):
+        if not control or self._is_customer_flow(control):
             # HangHeung consignees have no record-upload page.
             return request.redirect('/my')
         products = self._sorted_products(control.product_ids)
@@ -131,7 +131,7 @@ class HHPortalOrders(CustomerPortal):
                 website=True, methods=['POST'], csrf=True)
     def portal_upload_sales_submit(self, **post):
         control = self._get_user_portal_control()
-        if not control or self._is_hangheung_control(control):
+        if not control or self._is_customer_flow(control):
             return request.redirect('/my')
 
         date_order = (post.get('date_order') or '').strip()
@@ -218,7 +218,7 @@ class HHPortalOrders(CustomerPortal):
             })
         products = self._sorted_products(control.product_ids)
         min_date = (date.today() + timedelta(days=1)).isoformat()
-        page_title = '客戶訂貨單' if self._is_hangheung_control(control) else '訂貨單'
+        page_title = '客戶訂貨單' if self._is_customer_flow(control) else '訂貨單'
         return request.render('hh_portal_orders.portal_place_order', {
             'control': control,
             'products': products,
@@ -276,7 +276,7 @@ class HHPortalOrders(CustomerPortal):
         # HangHeung sale.order to the portal customer with a normal
         # customer delivery (no own warehouse, no intercompany PO chain).
         # ----------------------------------------------------------------
-        if self._is_hangheung_control(control):
+        if self._is_customer_flow(control):
             so_lines = []
             for pid, qty in line_qty.items():
                 uom_id, base_qty = self._convert_line_qty(products[pid], qty, post)
@@ -302,6 +302,7 @@ class HHPortalOrders(CustomerPortal):
                     'partner_id': control.partner_id.id,
                     'company_id': HANGHEUNG_COMPANY_ID,
                     'commitment_date': commitment_date + ' 12:00:00',
+                    'is_portal_customer_order': True,
                     'order_line': so_lines,
                 }
                 if pricelist:
@@ -382,7 +383,7 @@ class HHPortalOrders(CustomerPortal):
         values = super()._prepare_home_portal_values(counters)
         control = self._get_user_portal_control()
         values['hh_portal_control'] = control
-        values['hh_portal_is_hangheung'] = self._is_hangheung_control(control)
+        values['hh_portal_is_customer'] = self._is_customer_flow(control)
         return values
 
     # ------------------------------------------------------------------
@@ -392,8 +393,55 @@ class HHPortalOrders(CustomerPortal):
     # unaffected.
     # ------------------------------------------------------------------
 
+    # ------------------------------------------------------------------
+    # Override /my/orders search to use sudo so that HangHeung (company 3)
+    # orders are visible from the Hoymay website (company 1 context).
+    # The global multi-company ORM rule blocks cross-company orders when
+    # the portal user is browsing a website tied to a different company.
+    # ------------------------------------------------------------------
+
+    def _prepare_sale_portal_rendering_values(
+        self, page=1, date_begin=None, date_end=None, sortby=None,
+        quotation_page=False, **kwargs
+    ):
+        values = super()._prepare_sale_portal_rendering_values(
+            page=page, date_begin=date_begin, date_end=date_end,
+            sortby=sortby, quotation_page=quotation_page, **kwargs
+        )
+        if not quotation_page and self._get_user_portal_control():
+            partner = request.env.user.partner_id
+            domain = self._prepare_orders_domain(partner)
+            if date_begin and date_end:
+                domain += [('create_date', '>', date_begin),
+                           ('create_date', '<=', date_end)]
+            SaleOrder = request.env['sale.order'].sudo()
+            if not sortby:
+                sortby = 'date'
+            sort_order = self._get_sale_searchbar_sortings()[sortby]['order']
+            total = SaleOrder.search_count(domain)
+            pager_values = portal_pager(
+                url='/my/orders',
+                total=total,
+                page=page,
+                step=self._items_per_page,
+                url_args={'date_begin': date_begin, 'date_end': date_end},
+            )
+            orders = SaleOrder.search(
+                domain, order=sort_order,
+                limit=self._items_per_page,
+                offset=pager_values['offset'],
+            )
+            values.update({'orders': orders, 'pager': pager_values})
+        return values
+
     def _prepare_orders_domain(self, partner):
         domain = super()._prepare_orders_domain(partner)
         if self._get_user_portal_control():
-            domain = domain + [('is_portal_record_upload', '=', True)]
+            # Show only portal-placed orders: 上載購物紀錄 or 客戶訂貨單.
+            # Back-office / intercompany SOs on their partner stay hidden.
+            domain = domain + [
+                '|',
+                ('is_portal_record_upload', '=', True),
+                ('is_portal_customer_order', '=', True),
+            ]
         return domain

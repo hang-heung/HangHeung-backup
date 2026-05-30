@@ -21,6 +21,16 @@ class SaleOrder(models.Model):
              "an invoice is created and posted on confirmation.",
     )
 
+    is_portal_customer_order = fields.Boolean(
+        string='Portal: Customer Order',
+        default=False,
+        copy=False,
+        readonly=True,
+        index=True,
+        help="True when this SO was placed by a HangHeung consignee "
+             "via the 客戶訂貨單 portal page.",
+    )
+
     def _action_confirm(self):
         # Portal record-upload SOs have no delivery, but commitment_date
         # is required by HH backend UX (otherwise the form refuses to
@@ -30,7 +40,7 @@ class SaleOrder(models.Model):
             so.commitment_date = so.date_order
         result = super()._action_confirm()
         for so in self.filtered('is_portal_record_upload'):
-            so._hh_post_record_upload_invoice()
+            so._hh_create_record_upload_invoice()
         return result
 
     # ------------------------------------------------------------------
@@ -47,18 +57,19 @@ class SaleOrder(models.Model):
         normal = self.filtered(lambda o: not o.is_portal_record_upload)
         return super(SaleOrder, normal)._check_commitment_date_min_lead()
 
-    def _hh_post_record_upload_invoice(self):
-        """Create + post an invoice on a record-upload SO. Forces
-        invoiceable qty to product_uom_qty so the call works even when
-        the product's invoice_policy is 'delivery' (no delivery has
-        happened for these SOs by design)."""
+    def _hh_create_record_upload_invoice(self):
+        """Create a DRAFT invoice on a record-upload SO. Forces invoiceable
+        qty to product_uom_qty so the call works even when the product's
+        invoice_policy is 'delivery' (no delivery has happened for these
+        SOs by design).
+
+        The invoice is intentionally left in DRAFT: a portal action should
+        not post directly to the GL. Back-office reviews and posts it.
+        """
         self.ensure_one()
         if not self.order_line:
             return
-        invoice = self.with_context(hh_force_order_invoice=True).sudo()._create_invoices()
-        if invoice:
-            invoice.action_post()
-        return invoice
+        return self.with_context(hh_force_order_invoice=True).sudo()._create_invoices()
 
 
 class SaleOrderLine(models.Model):

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'HangHeung Portal Orders',
-    'version': '1.3.22',
+    'version': '1.5.0',
     'summary': 'Customer portal for record-upload (上載購物紀錄) and order placement (訂貨單)',
     'description': """
         Adds two portal pages for external consignee customers:
@@ -28,7 +28,9 @@
         'security/ir.model.access.csv',
         'security/portal_security.xml',
         'views/portal_order_control_views.xml',
+        'wizard/portal_customer_onboard_views.xml',
         'views/portal_templates.xml',
+        'views/assets.xml',
     ],
     'installable': True,
     'application': False,

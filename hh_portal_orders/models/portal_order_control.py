@@ -1,7 +1,12 @@
 import logging
 
 from odoo import _, api, fields, models
-from odoo.exceptions import UserError
+from odoo.exceptions import UserError, ValidationError
+
+# Company routing for each order flow. (Kept as module constants for now;
+# moving these to config params is tracked separately.)
+CONSIGNEE_COMPANY_ID = 1   # Hoymay HK Ltd
+CUSTOMER_COMPANY_ID = 3    # HANG HEUNG CAKE SHOP COMPANY LIMITED
 
 _logger = logging.getLogger(__name__)
 
@@ -20,6 +25,21 @@ class PortalOrderControl(models.Model):
     _rec_name = 'partner_id'
     _order = 'partner_id'
 
+    flow_type = fields.Selection(
+        selection=[
+            ('consignee', '寄賣倉訂貨 (Hoymay Consignee)'),
+            ('customer', '客戶直接訂貨 (HangHeung Customer)'),
+        ],
+        string='Order Flow',
+        required=True,
+        default='consignee',
+        help="Drives what a portal order becomes:\n"
+             "- 寄賣倉訂貨 (Consignee): 訂貨 creates a Hoymay PO that cascades "
+             "through the intercompany chain (Hoymay -> That's -> HangHeung), "
+             "plus the day-end 上載購物紀錄 page.\n"
+             "- 客戶直接訂貨 (Customer): 客戶訂貨單 creates a direct HangHeung "
+             "sale order; no record-upload page.",
+    )
     partner_id = fields.Many2one(
         'res.partner',
         string='Portal Customer',
@@ -88,6 +108,32 @@ class PortalOrderControl(models.Model):
                     domain.append(('company_id', '=', rec.company_id.id))
                 wh = Warehouse.search(domain, limit=1)
             rec.warehouse_id = wh.id if wh else False
+
+    @api.onchange('flow_type')
+    def _onchange_flow_type(self):
+        """Keep company_id consistent with the chosen flow in the form UI.
+        (Belt: the constraint below enforces this on all writes, incl.
+        non-UI ones like import/RPC.)"""
+        target = (CUSTOMER_COMPANY_ID if self.flow_type == 'customer'
+                  else CONSIGNEE_COMPANY_ID)
+        self.company_id = self.env['res.company'].browse(target)
+
+    @api.constrains('flow_type', 'company_id')
+    def _check_flow_company(self):
+        """Hard-block a flow_type / company_id mismatch so a record can
+        never be silently routed down the wrong flow."""
+        for rec in self:
+            expected = (CUSTOMER_COMPANY_ID if rec.flow_type == 'customer'
+                        else CONSIGNEE_COMPANY_ID)
+            if rec.company_id and rec.company_id.id != expected:
+                raise ValidationError(_(
+                    "Order Flow '%(flow)s' must use company id %(exp)s, but "
+                    "this record is set to company '%(got)s'. Pick the matching "
+                    "company (Consignee -> Hoymay, Customer -> HangHeung).",
+                    flow=dict(self._fields['flow_type'].selection).get(rec.flow_type),
+                    exp=expected,
+                    got=rec.company_id.display_name,
+                ))
 
     @api.model_create_multi
     def create(self, vals_list):

@@ -1,32 +1,155 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- ===========================================================
-         Mobile-responsive styling for the order tables. On phones the
-         table header is hidden and each product row becomes a stacked
-         "card" with the column name shown as a label before each value.
-         =========================================================== -->
-    <template id="hh_portal_order_table_style" name="HH Portal Order Table Mobile Style">
+    <!--
+    ================================================================
+    Global styles used by all HH portal pages.
+    ================================================================
+    -->
+    <template id="hh_portal_order_table_style" name="HH Portal Styles">
         <style>
+            /* ── Sticky table header (clears Odoo fixed navbar ~62px) ── */
+            .hh-order-table thead th {
+                position: sticky;
+                top: 62px;
+                background: #f8f9fa;
+                z-index: 5;
+                border-bottom: 2px solid #dee2e6;
+            }
+
+            /* ── Row highlight when qty filled ── */
+            .hh-order-table tr.hh-row-filled {
+                background-color: #fffbe6 !important;
+            }
+            .hh-order-table tr.hh-row-filled td { border-color: #ffe58f; }
+
+            /* ── Category divider rows ── */
+            .hh-cat-row td {
+                background-color: #4a1728 !important;
+                color: #fff !important;
+                font-weight: 600;
+                font-size: .82rem;
+                letter-spacing: .05em;
+                padding: .4rem .75rem !important;
+            }
+            .hh-cat-row .badge {
+                background-color: rgba(255,255,255,.22) !important;
+                color: #fff;
+                font-family: monospace;
+            }
+            /* suppress mobile ::before on category rows */
+            .hh-cat-row td::before { content: none !important; }
+
+            /* ── Floating submit bar ── */
+            .hh-sticky-bar {
+                position: fixed;
+                bottom: 0; left: 0; right: 0;
+                z-index: 1040;
+                background: #4a1728;
+                color: #fff;
+                box-shadow: 0 -2px 12px rgba(0,0,0,.25);
+                padding: .55rem 0;
+            }
+            .hh-sticky-bar .btn-submit-bar {
+                background: #fff;
+                color: #4a1728;
+                font-weight: 700;
+                border: none;
+                padding: .3rem 1.4rem;
+                border-radius: 4px;
+            }
+            .hh-sticky-bar .btn-submit-bar:hover { background: #f0e6e8; }
+            /* pad page bottom so last rows aren't hidden */
+            body.has-hh-bar { padding-bottom: 58px; }
+
+            /* ── Action tiles on portal home ── */
+            .hh-action-tile {
+                border-left: 4px solid #4a1728;
+                transition: box-shadow .15s ease;
+            }
+            .hh-action-tile:hover { box-shadow: 0 4px 18px rgba(0,0,0,.11); }
+            .hh-action-tile .tile-icon {
+                font-size: 1.8rem;
+                color: #4a1728;
+                opacity: .65;
+                min-width: 2.2rem;
+                text-align: center;
+            }
+
+            /* ── Order list badges ── */
+            .badge-hh-active  { background-color: #0d6efd; color: #fff; }
+            .badge-hh-done    { background-color: #198754; color: #fff; }
+            .badge-hh-cancel  { background-color: #6c757d; color: #fff; }
+
+            /* ── Success page ── */
+            .hh-order-badge {
+                display: inline-block;
+                background: #4a1728;
+                color: #fff;
+                border-radius: 6px;
+                padding: .3rem 1rem;
+                font-size: 1.15rem;
+                font-weight: 700;
+                letter-spacing: .04em;
+            }
+            .hh-summary-table th {
+                background: #f8f9fa;
+                font-size: .82rem;
+                font-weight: 600;
+            }
+            .hh-summary-table td { font-size: .9rem; }
+
+            /* ── Page title accent bar ── */
+            .hh-page-title {
+                display: flex;
+                align-items: center;
+                margin-bottom: 1.25rem;
+                padding-bottom: .75rem;
+                border-bottom: 1px solid #dee2e6;
+            }
+            .hh-page-title .accent {
+                width: 4px; height: 1.8rem;
+                background: #4a1728;
+                border-radius: 2px;
+                margin-right: .75rem;
+                flex-shrink: 0;
+            }
+
+            /* ── Date card ── */
+            .hh-date-card {
+                background: #fafafa;
+                border: 1px solid #e9ecef;
+                border-radius: 6px;
+                padding: .75rem 1rem;
+                margin-bottom: 1.25rem;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex-wrap: wrap;
+            }
+
+            /* ── Mobile ── */
             @media (max-width: 767.98px) {
                 .hh-order-table thead { display: none; }
-                .hh-order-table, .hh-order-table tbody,
-                .hh-order-table tr, .hh-order-table td { display: block; width: 100%; }
+                .hh-order-table,
+                .hh-order-table tbody,
+                .hh-order-table tr,
+                .hh-order-table td { display: block; width: 100%; }
                 .hh-order-table tr {
-                    margin-bottom: 1rem;
+                    margin-bottom: .85rem;
                     border: 1px solid #dee2e6;
-                    border-radius: .5rem;
+                    border-radius: .4rem;
                     overflow: hidden;
                 }
                 .hh-order-table td {
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
-                    gap: 1rem;
+                    gap: .75rem;
                     border: 0;
                     border-bottom: 1px solid #f1f1f1;
                     text-align: right;
-                    padding: .5rem .75rem;
+                    padding: .45rem .75rem;
                 }
                 .hh-order-table tr td:last-child { border-bottom: 0; }
                 .hh-order-table td::before {
@@ -34,76 +157,69 @@
                     font-weight: 600;
                     color: #6c757d;
                     text-align: left;
-                    flex: 0 0 42%;
+                    flex: 0 0 40%;
                 }
                 .hh-order-table td > .form-control,
                 .hh-order-table td > .form-select { flex: 1 1 auto; min-width: 0; }
-                /* category-header &amp; empty-state rows span the whole card */
-                .hh-order-table td[colspan] { text-align: left; }
-                .hh-order-table td[colspan]::before { content: none; }
+                .hh-sticky-bar .container { flex-wrap: wrap; gap: .35rem; }
             }
         </style>
     </template>
 
-    <!-- ===========================================================
-         Portal home tiles: two big cards linking to the two portal
-         pages, shown only when the logged-in user has a
-         portal.order.control record.
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    Portal home: action tiles.
+    ================================================================
+    -->
     <template id="portal_my_home_hh"
               inherit_id="portal.portal_my_home"
               name="HH Portal Order Home Tiles"
               priority="30">
         <xpath expr="//div[hasclass('o_portal_docs')]" position="before">
             <t t-if="hh_portal_control">
-                <!-- Hide the "Your Invoices" tile for consignee portal users -->
                 <style>
-                    .o_portal_index_card:has(&gt; a[href*="filterby=invoices"]) { display: none !important; }
+                    .o_portal_index_card:has(> a[href*="filterby=invoices"]) { display: none !important; }
                 </style>
-                <div class="row mb-4 hh-portal-tiles">
-                    <!-- Hoymay consignees: record-upload + order tiles -->
+                <div class="row mb-4">
                     <t t-if="not hh_portal_is_hangheung">
                         <div class="col-md-6 mb-3">
-                            <a href="/my/upload-sales"
-                               class="d-block text-decoration-none">
-                                <div class="card border-primary h-100 text-center">
-                                    <div class="card-body py-5">
-                                        <h1 class="card-title mb-2"
-                                            style="font-size: 2.4rem; font-weight: bold; color: #AF8489;">
-                                            上載購物紀錄
-                                        </h1>
-                                        <p class="card-text text-muted">Upload Purchase Records</p>
+                            <a href="/my/upload-sales" class="d-block text-decoration-none">
+                                <div class="card hh-action-tile h-100">
+                                    <div class="card-body py-3 px-4 d-flex align-items-center gap-3">
+                                        <span class="tile-icon"><i class="fa fa-upload"/></span>
+                                        <div>
+                                            <div class="fw-bold">上載購物紀錄</div>
+                                            <div class="text-muted small">Upload Purchase Records</div>
+                                        </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <a href="/my/place-order"
-                               class="d-block text-decoration-none">
-                                <div class="card border-secondary h-100 text-center">
-                                    <div class="card-body py-5">
-                                        <h1 class="card-title mb-2"
-                                            style="font-size: 2.4rem; font-weight: bold; color: #1F4E79;">
-                                            訂貨單
-                                        </h1>
-                                        <p class="card-text text-muted">Place Order</p>
+                            <a href="/my/place-order" class="d-block text-decoration-none">
+                                <div class="card hh-action-tile h-100">
+                                    <div class="card-body py-3 px-4 d-flex align-items-center gap-3">
+                                        <span class="tile-icon"><i class="fa fa-shopping-basket"/></span>
+                                        <div>
+                                            <div class="fw-bold">訂貨單</div>
+                                            <div class="text-muted small">Place Order</div>
+                                        </div>
                                     </div>
                                 </div>
                             </a>
                         </div>
                     </t>
-                    <!-- HangHeung consignees (treated as customers): single order tile -->
                     <t t-else="">
-                        <div class="col-md-6 mb-3 mx-auto">
-                            <a href="/my/place-order"
-                               class="d-block text-decoration-none">
-                                <div class="card border-secondary h-100 text-center">
-                                    <div class="card-body py-5">
-                                        <h1 class="card-title mb-2"
-                                            style="font-size: 2.4rem; font-weight: bold; color: #1F4E79;">
-                                            客戶訂貨單
-                                        </h1>
-                                        <p class="card-text text-muted">Place Order</p>
+                        <div class="col-md-5 mb-3">
+                            <a href="/my/place-order" class="d-block text-decoration-none">
+                                <div class="card hh-action-tile h-100">
+                                    <div class="card-body py-3 px-4 d-flex align-items-center gap-3">
+                                        <span class="tile-icon"><i class="fa fa-shopping-basket"/></span>
+                                        <div>
+                                            <div class="fw-bold">客戶訂貨單</div>
+                                            <div class="text-muted small">Place Order</div>
+                                        </div>
                                     </div>
                                 </div>
                             </a>
@@ -114,16 +230,12 @@
         </xpath>
     </template>
 
-    <!-- ===========================================================
-         Rename portal home tile titles for HH consignee semantics:
-           "Your Orders"  → 銷售紀錄  (Sales Records)
-           "Our Orders"   → 補貨紀錄  (Replenishment Records)
 
-         Inherits portal.portal_my_home (not the sale/purchase
-         children) so my priority=30 runs after sale (20) and
-         purchase (25), meaning their position="inside" content is
-         already merged into the arch and findable by xpath.
-         =========================================================== -->
+    <!--
+    ================================================================
+    Rename portal home tile titles + hide Connection/Security tile.
+    ================================================================
+    -->
     <template id="portal_my_home_rename_titles"
               inherit_id="portal.portal_my_home"
               name="HH Rename Portal Home Tile Titles"
@@ -134,106 +246,184 @@
         <xpath expr="//div[@id='portal_vendor_category']//t[@t-set='url' and contains(@t-value, '/my/purchase')]/preceding-sibling::t[@t-set='title']" position="replace">
             <t t-set="title">補貨紀錄</t>
         </xpath>
-
-        <!-- Hide 連線及保安 (Connection &amp; Security) tile -->
         <xpath expr="//div[@id='portal_common_category']" position="attributes">
             <attribute name="t-if">False</attribute>
         </xpath>
     </template>
 
-    <!-- ===========================================================
-         /my/upload-sales : the big 上載購物紀錄 form
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    Shared product table body — called by both order forms.
+    Renders the grouped product table + floating bar + JS.
+    ================================================================
+    -->
+    <template id="hh_portal_order_form_body" name="HH Order Form Body (shared)">
+        <t t-call="hh_portal_orders.hh_portal_order_table_style"/>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm align-middle hh-order-table mb-0">
+                <thead>
+                    <tr>
+                        <th style="min-width:108px">產品代碼</th>
+                        <th style="min-width:88px">舊貨號</th>
+                        <th style="min-width:160px">產品名稱</th>
+                        <th style="min-width:88px">包裝規格</th>
+                        <th style="width:110px" class="text-end">數量</th>
+                        <th style="width:130px">單位</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <t t-foreach="grouped_products" t-as="group">
+                        <tr class="hh-cat-row">
+                            <td colspan="6">
+                                <t t-if="group['code']">
+                                    <span class="badge me-2"><t t-esc="group['code']"/></span>
+                                </t>
+                                <t t-esc="group['name']"/>
+                            </td>
+                        </tr>
+                        <t t-foreach="group['products']" t-as="p">
+                            <tr>
+                                <td data-label="產品代碼">
+                                    <span class="text-monospace small"><t t-esc="p.default_code or ''"/></span>
+                                </td>
+                                <td data-label="舊貨號">
+                                    <span class="text-muted small"><t t-esc="p.old_item_number or ''"/></span>
+                                </td>
+                                <td data-label="產品名稱"><t t-esc="p.name"/></td>
+                                <td data-label="包裝規格">
+                                    <span class="text-muted small"><t t-esc="p.product_tmpl_id.packing_spec or ''"/></span>
+                                </td>
+                                <td data-label="數量">
+                                    <input type="number" min="0" step="any"
+                                           t-attf-name="qty_{{p.id}}"
+                                           class="form-control form-control-sm text-end"
+                                           placeholder="0"/>
+                                </td>
+                                <td data-label="單位">
+                                    <select t-attf-name="uom_{{p.id}}" class="form-select form-select-sm">
+                                        <option value="base"><t t-esc="p.uom_id.name"/></option>
+                                        <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
+                                            <option value="alt">
+                                                <t t-esc="p.product_tmpl_id.alternate_unit_of_measure.name"/>
+                                                (×<t t-esc="p.product_tmpl_id.conversion_rate"/>)
+                                            </option>
+                                        </t>
+                                    </select>
+                                </td>
+                            </tr>
+                        </t>
+                    </t>
+                    <t t-if="not grouped_products">
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-5">
+                                <i class="fa fa-inbox fa-2x d-block mb-2"/>
+                                產品列表為空 — 請聯絡管理員設定您的帳戶。
+                            </td>
+                        </tr>
+                    </t>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Floating bar: shown by JS when any qty > 0 -->
+        <div id="hh-sticky-bar" class="hh-sticky-bar d-none">
+            <div class="container d-flex justify-content-between align-items-center">
+                <span id="hh-bar-summary" class="small fw-semibold"></span>
+                <button type="submit" class="btn-submit-bar">提交 Submit</button>
+            </div>
+        </div>
+
+        <script type="text/javascript">
+        (function () {
+            var form    = document.getElementById('hh-order-form');
+            var inputs  = form ? form.querySelectorAll('input[name^="qty_"]') : [];
+            var bar     = document.getElementById('hh-sticky-bar');
+            var label   = document.getElementById('hh-bar-summary');
+            var barBtn  = bar ? bar.querySelector('button') : null;
+
+            /* clicking the floating bar button submits the main form */
+            if (barBtn &amp;&amp; form) {
+                barBtn.addEventListener('click', function () { form.submit(); });
+            }
+
+            function refresh() {
+                var lines = 0, total = 0;
+                inputs.forEach(function (inp) {
+                    var v   = parseFloat(inp.value) || 0;
+                    var row = inp.closest('tr');
+                    if (v > 0) {
+                        lines++;
+                        total += v;
+                        if (row) row.classList.add('hh-row-filled');
+                    } else {
+                        if (row) row.classList.remove('hh-row-filled');
+                    }
+                });
+                if (lines > 0) {
+                    bar.classList.remove('d-none');
+                    document.body.classList.add('has-hh-bar');
+                    label.textContent = lines + ' 款產品 · 合共 ' + total + ' 件';
+                } else {
+                    bar.classList.add('d-none');
+                    document.body.classList.remove('has-hh-bar');
+                }
+            }
+            inputs.forEach(function (inp) { inp.addEventListener('input', refresh); });
+            refresh();
+        })();
+        </script>
+    </template>
+
+
+    <!--
+    ================================================================
+    /my/upload-sales
+    ================================================================
+    -->
     <template id="portal_upload_sales" name="Portal Upload Sales (上載購物紀錄)">
         <t t-call="portal.portal_layout">
             <t t-set="title">上載購物紀錄</t>
             <div class="container my-4">
-                <h1 class="text-center my-4"
-                    style="font-size: 3rem; font-weight: bold; color: #AF8489;">
-                    上載購物紀錄
-                </h1>
+
+                <div class="hh-page-title">
+                    <span class="accent"/>
+                    <h5 class="mb-0 fw-bold me-2">上載購物紀錄</h5>
+                    <span class="text-muted small">Upload Purchase Records</span>
+                </div>
 
                 <t t-if="error">
-                    <div class="alert alert-warning" role="alert">
-                        <t t-if="error == 'no-date'">請選擇日期 / Please pick a date.</t>
-                        <t t-if="error == 'no-qty'">請最少填寫一項數量 / Please enter quantity on at least one item.</t>
-                        <t t-if="error == 'submit-failed'">提交失敗，請聯絡管理員 / Submission failed, please contact your manager.</t>
+                    <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <span>
+                            <t t-if="error == 'no-date'">請選擇日期 / Please pick a date.</t>
+                            <t t-if="error == 'no-qty'">請最少填寫一項數量 / Please enter at least one quantity.</t>
+                            <t t-if="error == 'submit-failed'">提交失敗，請聯絡管理員 / Submission failed — please contact your manager.</t>
+                        </span>
                     </div>
                 </t>
 
-                <form action="/my/upload-sales/submit" method="post" class="hh-portal-form">
+                <form id="hh-order-form" action="/my/upload-sales/submit" method="post">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
-                    <div class="row mb-3 align-items-center">
-                        <label class="col-sm-3 col-form-label fw-bold">
-                            日期 / Order Date
+                    <div class="hh-date-card">
+                        <label class="fw-semibold mb-0 me-1">
+                            <i class="fa fa-calendar-o me-1 text-muted"/>
+                            訂單日期 / Order Date
                         </label>
-                        <div class="col-sm-4">
-                            <input type="date" name="date_order" class="form-control" required="required"/>
-                        </div>
+                        <input type="date" name="date_order" class="form-control form-control-sm"
+                               style="max-width:180px" required="required"/>
                     </div>
 
-                    <t t-call="hh_portal_orders.hh_portal_order_table_style"/>
-                    <table class="table table-bordered table-hover align-middle hh-order-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Internal Reference</th>
-                                <th>Old Item Code</th>
-                                <th>Name</th>
-                                <th>包裝規格</th>
-                                <th style="width: 130px;" class="text-end">Quantity</th>
-                                <th style="width: 140px;">單位 / Unit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-foreach="grouped_products" t-as="group">
-                                <tr class="table-secondary">
-                                    <td colspan="6" class="fw-bold" style="background-color: #E7EAEF;">
-                                        <t t-if="group['code']">
-                                            <span class="badge bg-primary me-2" style="font-family: monospace; font-size: 0.9em;">
-                                                <t t-esc="group['code']"/>
-                                            </span>
-                                        </t>
-                                        <t t-esc="group['name']"/>
-                                    </td>
-                                </tr>
-                                <t t-foreach="group['products']" t-as="p">
-                                    <tr>
-                                        <td data-label="Internal Reference"><t t-esc="p.default_code or ''"/></td>
-                                        <td data-label="Old Item Code"><t t-esc="p.old_item_number or ''"/></td>
-                                        <td data-label="Name"><t t-esc="p.name"/></td>
-                                        <td data-label="包裝規格"><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
-                                        <td data-label="Quantity">
-                                            <input type="number" min="0" step="any"
-                                                   t-attf-name="qty_{{p.id}}"
-                                                   class="form-control text-end"
-                                                   placeholder="0"/>
-                                        </td>
-                                        <td data-label="單位 / Unit">
-                                            <select t-attf-name="uom_{{p.id}}" class="form-select">
-                                                <option value="base"><t t-esc="p.uom_id.name"/></option>
-                                                <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
-                                                    <option value="alt"><t t-esc="p.product_tmpl_id.alternate_unit_of_measure.name"/> (×<t t-esc="p.product_tmpl_id.conversion_rate"/>)</option>
-                                                </t>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </t>
-                            <t t-if="not grouped_products">
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        產品列表為空 / No products configured for your account.
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
+                    <t t-call="hh_portal_orders.hh_portal_order_form_body"/>
 
-                    <div class="d-flex justify-content-between my-4">
-                        <a href="/my" class="btn btn-outline-secondary">取消 / Cancel</a>
-                        <button type="submit" class="btn btn-primary btn-lg" t-if="grouped_products">
-                            提交 / Submit
+                    <div class="d-flex justify-content-between mt-4 mb-2">
+                        <a href="/my" class="btn btn-outline-secondary btn-sm">
+                            <i class="fa fa-arrow-left me-1"/> 取消
+                        </a>
+                        <button t-if="grouped_products" type="submit" class="btn btn-primary px-4">
+                            提交 Submit
                         </button>
                     </div>
                 </form>
@@ -241,134 +431,126 @@
         </t>
     </template>
 
-    <!-- ===========================================================
-         /my/upload-sales/done/<so_id> : success page
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    /my/upload-sales/done — no prices shown
+    ================================================================
+    -->
     <template id="portal_upload_sales_done" name="Portal Upload Sales Done">
         <t t-call="portal.portal_layout">
             <t t-set="title">上載成功</t>
-            <div class="container my-5 text-center">
-                <div class="py-5">
-                    <h1 style="font-size: 3rem; color: #28a745;">
-                        <i class="fa fa-check-circle"/> 上載成功
-                    </h1>
-                    <p class="lead mt-3">Order: <strong t-esc="so.name"/></p>
-                    <p class="text-muted">
-                        <t t-esc="len(so.order_line)"/> line(s) recorded
-                        <t t-if="so.amount_total">
-                            · Total: <t t-esc="'%.2f' % so.amount_total"/>
-                            <t t-esc="so.currency_id.symbol or so.currency_id.name"/>
-                        </t>
-                    </p>
+            <div class="container my-5">
+
+                <div class="text-center mb-4">
+                    <i class="fa fa-check-circle fa-3x" style="color:#198754"/>
+                    <h5 class="mt-3 fw-bold">上載成功 / Submitted</h5>
+                    <div class="mt-2">
+                        <span class="hh-order-badge"><t t-esc="so.name"/></span>
+                    </div>
                 </div>
-                <div class="mt-4">
-                    <a href="/my/upload-sales" class="btn btn-outline-primary me-2">
-                        再上載 / Upload another
+
+                <div class="card mx-auto" style="max-width:620px">
+                    <div class="card-header small fw-semibold text-muted">
+                        訂單明細 Order Summary
+                        <span class="float-end"><t t-esc="len(so.order_line)"/> 款產品</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 hh-summary-table">
+                            <thead>
+                                <tr>
+                                    <th>產品代碼</th>
+                                    <th>產品名稱</th>
+                                    <th class="text-end">數量</th>
+                                    <th>單位</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="so.order_line" t-as="line">
+                                    <t t-if="not line.display_type">
+                                        <tr>
+                                            <td class="small text-monospace">
+                                                <t t-esc="line.product_id.default_code or ''"/>
+                                            </td>
+                                            <td><t t-esc="line.product_id.name"/></td>
+                                            <td class="text-end fw-semibold">
+                                                <t t-esc="'%g' % line.product_uom_qty"/>
+                                            </td>
+                                            <td class="text-muted small">
+                                                <t t-esc="line.product_uom.name"/>
+                                            </td>
+                                        </tr>
+                                    </t>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 d-flex justify-content-center gap-3">
+                    <a href="/my/upload-sales" class="btn btn-outline-primary btn-sm">
+                        <i class="fa fa-upload me-1"/> 再上載
                     </a>
-                    <a href="/my" class="btn btn-outline-secondary">
-                        返回 / Back to Home
+                    <a href="/my" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa fa-home me-1"/> 返回主頁
                     </a>
                 </div>
+
             </div>
         </t>
     </template>
 
-    <!-- ===========================================================
-         /my/place-order : the big 訂貨單 form
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    /my/place-order
+    ================================================================
+    -->
     <template id="portal_place_order" name="Portal Place Order (訂貨單)">
         <t t-call="portal.portal_layout">
             <t t-set="title" t-value="page_title"/>
             <div class="container my-4">
-                <h1 class="text-center my-4"
-                    style="font-size: 3rem; font-weight: bold; color: #1F4E79;">
-                    <t t-esc="page_title"/>
-                </h1>
+
+                <div class="hh-page-title">
+                    <span class="accent"/>
+                    <h5 class="mb-0 fw-bold"><t t-esc="page_title"/></h5>
+                </div>
 
                 <t t-if="error">
-                    <div class="alert alert-warning" role="alert">
-                        <t t-if="error == 'no-date'">請選擇送貨日期 / Please pick a delivery date.</t>
-                        <t t-if="error == 'date-too-soon'">送貨日期必須為明日或之後 / Delivery date must be tomorrow or later.</t>
-                        <t t-if="error == 'no-qty'">請最少填寫一項數量 / Please enter quantity on at least one item.</t>
-                        <t t-if="error == 'submit-failed'">提交失敗，請聯絡管理員 / Submission failed, please contact your manager.</t>
+                    <div class="alert alert-warning d-flex align-items-center gap-2" role="alert">
+                        <i class="fa fa-exclamation-triangle"/>
+                        <span>
+                            <t t-if="error == 'no-date'">請選擇送貨日期 / Please pick a delivery date.</t>
+                            <t t-if="error == 'date-too-soon'">送貨日期必須為明日或之後 / Delivery date must be tomorrow or later.</t>
+                            <t t-if="error == 'no-qty'">請最少填寫一項數量 / Please enter at least one quantity.</t>
+                            <t t-if="error == 'submit-failed'">提交失敗，請聯絡管理員 / Submission failed — please contact your manager.</t>
+                        </span>
                     </div>
                 </t>
 
-                <form action="/my/place-order/submit" method="post" class="hh-portal-form">
+                <form id="hh-order-form" action="/my/place-order/submit" method="post">
                     <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
 
-                    <div class="row mb-3 align-items-center">
-                        <label class="col-sm-3 col-form-label fw-bold">
+                    <div class="hh-date-card">
+                        <label class="fw-semibold mb-0 me-1">
+                            <i class="fa fa-truck me-1 text-muted"/>
                             送貨日期 / Delivery Date
                         </label>
-                        <div class="col-sm-4">
-                            <input type="date" name="commitment_date" class="form-control"
-                                   t-att-min="min_date" t-att-value="min_date" required="required"/>
-                            <small class="text-muted">最早為明日 / Earliest is tomorrow</small>
-                        </div>
+                        <input type="date" name="commitment_date" class="form-control form-control-sm"
+                               style="max-width:180px"
+                               t-att-min="min_date" t-att-value="min_date"
+                               required="required"/>
+                        <span class="text-muted small">最早為明日 / Earliest: tomorrow</span>
                     </div>
 
-                    <t t-call="hh_portal_orders.hh_portal_order_table_style"/>
-                    <table class="table table-bordered table-hover align-middle hh-order-table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Internal Reference</th>
-                                <th>Old Item Code</th>
-                                <th>Name</th>
-                                <th>包裝規格</th>
-                                <th style="width: 130px;" class="text-end">Quantity</th>
-                                <th style="width: 140px;">單位 / Unit</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <t t-foreach="grouped_products" t-as="group">
-                                <tr class="table-secondary">
-                                    <td colspan="6" class="fw-bold" style="background-color: #E7EAEF;">
-                                        <t t-if="group['code']">
-                                            <span class="badge bg-primary me-2" style="font-family: monospace; font-size: 0.9em;">
-                                                <t t-esc="group['code']"/>
-                                            </span>
-                                        </t>
-                                        <t t-esc="group['name']"/>
-                                    </td>
-                                </tr>
-                                <t t-foreach="group['products']" t-as="p">
-                                    <tr>
-                                        <td data-label="Internal Reference"><t t-esc="p.default_code or ''"/></td>
-                                        <td data-label="Old Item Code"><t t-esc="p.old_item_number or ''"/></td>
-                                        <td data-label="Name"><t t-esc="p.name"/></td>
-                                        <td data-label="包裝規格"><t t-esc="p.product_tmpl_id.packing_spec or ''"/></td>
-                                        <td data-label="Quantity">
-                                            <input type="number" min="0" step="any"
-                                                   t-attf-name="qty_{{p.id}}"
-                                                   class="form-control text-end"
-                                                   placeholder="0"/>
-                                        </td>
-                                        <td data-label="單位 / Unit">
-                                            <select t-attf-name="uom_{{p.id}}" class="form-select">
-                                                <option value="base"><t t-esc="p.uom_id.name"/></option>
-                                                <t t-if="p.product_tmpl_id.alternate_unit_of_measure and p.product_tmpl_id.conversion_rate">
-                                                    <option value="alt"><t t-esc="p.product_tmpl_id.alternate_unit_of_measure.name"/> (×<t t-esc="p.product_tmpl_id.conversion_rate"/>)</option>
-                                                </t>
-                                            </select>
-                                        </td>
-                                    </tr>
-                                </t>
-                            </t>
-                            <t t-if="not grouped_products">
-                                <tr>
-                                    <td colspan="6" class="text-center text-muted py-4">
-                                        產品列表為空 / No products configured for your account.
-                                    </td>
-                                </tr>
-                            </t>
-                        </tbody>
-                    </table>
+                    <t t-call="hh_portal_orders.hh_portal_order_form_body"/>
 
-                    <div class="d-flex justify-content-between my-4">
-                        <a href="/my" class="btn btn-outline-secondary">取消 / Cancel</a>
-                        <button type="submit" class="btn btn-primary btn-lg" t-if="grouped_products">
-                            提交 / Submit
+                    <div class="d-flex justify-content-between mt-4 mb-2">
+                        <a href="/my" class="btn btn-outline-secondary btn-sm">
+                            <i class="fa fa-arrow-left me-1"/> 取消
+                        </a>
+                        <button t-if="grouped_products" type="submit" class="btn btn-primary px-4">
+                            提交 Submit
                         </button>
                     </div>
                 </form>
@@ -376,60 +558,109 @@
         </t>
     </template>
 
-    <!-- ===========================================================
-         /my/place-order/done/<po_id> : success page
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    /my/place-order/done/<po_id>  (Hoymay consignees) — no prices
+    ================================================================
+    -->
     <template id="portal_place_order_done" name="Portal Place Order Done">
         <t t-call="portal.portal_layout">
             <t t-set="title">訂貨成功</t>
-            <div class="container my-5 text-center">
-                <div class="py-5">
-                    <h1 style="font-size: 3rem; color: #28a745;">
-                        <i class="fa fa-check-circle"/> 訂貨成功
-                    </h1>
-                    <p class="lead mt-3">Order: <strong t-esc="po.name"/></p>
-                    <p class="text-muted">
-                        <t t-esc="len(po.order_line)"/> line(s) ordered
-                        <t t-if="po.date_planned">
-                            · 送貨日期 / Delivery: <t t-esc="po.date_planned.strftime('%Y-%m-%d')"/>
-                        </t>
-                    </p>
+            <div class="container my-5">
+
+                <div class="text-center mb-4">
+                    <i class="fa fa-check-circle fa-3x" style="color:#198754"/>
+                    <h5 class="mt-3 fw-bold">訂貨成功 / Order Placed</h5>
+                    <div class="mt-2">
+                        <span class="hh-order-badge"><t t-esc="po.name"/></span>
+                    </div>
+                    <t t-if="po.date_planned">
+                        <div class="mt-2 text-muted small">
+                            <i class="fa fa-truck me-1"/>
+                            送貨日期 / Delivery:
+                            <strong><t t-esc="po.date_planned.strftime('%Y-%m-%d')"/></strong>
+                        </div>
+                    </t>
                 </div>
-                <div class="mt-4">
-                    <a href="/my/place-order" class="btn btn-outline-primary me-2">
-                        再訂貨 / Place another
+
+                <div class="card mx-auto" style="max-width:620px">
+                    <div class="card-header small fw-semibold text-muted">
+                        訂單明細 Order Summary
+                        <span class="float-end"><t t-esc="len(po.order_line)"/> 款產品</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0 hh-summary-table">
+                            <thead>
+                                <tr>
+                                    <th>產品代碼</th>
+                                    <th>產品名稱</th>
+                                    <th class="text-end">數量</th>
+                                    <th>單位</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="po.order_line" t-as="line">
+                                    <tr>
+                                        <td class="small text-monospace">
+                                            <t t-esc="line.product_id.default_code or ''"/>
+                                        </td>
+                                        <td><t t-esc="line.product_id.name"/></td>
+                                        <td class="text-end fw-semibold">
+                                            <t t-esc="'%g' % line.product_qty"/>
+                                        </td>
+                                        <td class="text-muted small">
+                                            <t t-esc="line.product_uom.name"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="text-center mt-4 d-flex justify-content-center gap-3">
+                    <a href="/my/place-order" class="btn btn-outline-primary btn-sm">
+                        <i class="fa fa-shopping-basket me-1"/> 再訂貨
                     </a>
-                    <a href="/my" class="btn btn-outline-secondary">
-                        返回 / Back to Home
+                    <a href="/my" class="btn btn-outline-secondary btn-sm">
+                        <i class="fa fa-home me-1"/> 返回主頁
                     </a>
                 </div>
+
             </div>
         </t>
     </template>
 
-    <!-- ===========================================================
-         Shown when the user has no portal.order.control record
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    No access page
+    ================================================================
+    -->
     <template id="portal_no_access" name="Portal No Access">
         <t t-call="portal.portal_layout">
             <t t-set="title">Access Not Configured</t>
             <div class="container my-5 text-center py-5">
-                <h1 style="font-size: 2rem;">尚未開通 / Access not configured</h1>
-                <p class="lead text-muted">
+                <i class="fa fa-lock fa-3x text-muted mb-3"/>
+                <h5 class="fw-bold mt-2">尚未開通 / Access not configured</h5>
+                <p class="text-muted mt-2">
                     請聯絡恆香為您開通此功能。<br/>
                     Please contact HangHeung to set up your portal access.
                 </p>
-                <a href="/my" class="btn btn-outline-secondary mt-3">返回 / Back to Home</a>
+                <a href="/my" class="btn btn-outline-secondary btn-sm mt-3">
+                    <i class="fa fa-arrow-left me-1"/> 返回 Back
+                </a>
             </div>
         </t>
     </template>
 
-    <!-- ===========================================================
-         Hide all pricing on the portal Sales Order document:
-         Unit Price / Taxes / Disc.% / Amount columns (everything from
-         the 3rd column onward), section subtotals, the totals table and
-         the sidebar amount figures.
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    Hide ALL pricing on the portal Sale Order detail page.
+    ================================================================
+    -->
     <template id="hh_hide_sale_portal_prices"
               inherit_id="sale.sale_order_portal_content"
               name="HH: hide prices on portal sales orders">
@@ -443,17 +674,19 @@
                 [data-id="total_amount"],
                 [data-id="total_untaxed"],
                 [data-id="amount_undiscounted"],
-                [name="sale_order_advantage"] { display: none !important; }
+                [name="sale_order_advantage"],
+                .o_portal_order_price,
+                .oe_subtotal_footer { display: none !important; }
             </style>
         </xpath>
     </template>
 
-    <!-- ===========================================================
-         Hide all pricing on the portal Purchase Order document:
-         Unit Price / Taxes / Disc.% / Amount columns (3rd column
-         onward), section subtotals, the totals block and the header
-         total figure.
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    Hide ALL pricing on the portal Purchase Order detail page.
+    ================================================================
+    -->
     <template id="hh_hide_purchase_portal_prices"
               inherit_id="purchase.purchase_order_portal_content"
               name="HH: hide prices on portal purchase orders">
@@ -463,31 +696,96 @@
                 #purchase_order_table td:nth-child(n+3),
                 #purchase_order_table tr.is-subtotal,
                 div#total[name="total"],
-                [data-id="total_amount"] { display: none !important; }
+                [data-id="total_amount"],
+                .oe_subtotal_footer { display: none !important; }
             </style>
         </xpath>
     </template>
 
-    <!-- ===========================================================
-         Hide the "Total" column in the portal Sales Orders list
-         (銷售紀錄) — it is the last column (amount_total).
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    Improved 銷售訂單 list: status badge, delivery date, line count.
+    No Total column.
+    ================================================================
+    -->
     <template id="hh_hide_sale_list_total"
               inherit_id="sale.portal_my_orders"
-              name="HH: hide Total column in portal sales order list">
-        <xpath expr="//td[span[@t-field='order.amount_total']]" position="replace"/>
-        <xpath expr="//thead/tr/th[last()]" position="replace"/>
+              name="HH: improved portal sales order list">
+        <!-- Replace header row -->
+        <xpath expr="//thead/tr" position="replace">
+            <tr class="active">
+                <th>銷售訂單 #</th>
+                <th>訂單日期</th>
+                <th class="d-none d-md-table-cell">送貨日期</th>
+                <th class="text-center d-none d-md-table-cell">產品數</th>
+                <th class="text-center">狀態</th>
+            </tr>
+        </xpath>
+        <!-- Replace order rows -->
+        <xpath expr="//t[@t-foreach='orders']" position="replace">
+            <t t-foreach="orders" t-as="order">
+                <tr>
+                    <td>
+                        <a t-att-href="order.get_portal_url()" class="fw-semibold text-decoration-none">
+                            <t t-out="order.name"/>
+                        </a>
+                    </td>
+                    <td>
+                        <span t-field="order.date_order" t-options="{'widget': 'date'}"/>
+                    </td>
+                    <td class="d-none d-md-table-cell text-muted">
+                        <span t-if="order.commitment_date"
+                              t-field="order.commitment_date"
+                              t-options="{'widget': 'date'}"/>
+                        <span t-else="">—</span>
+                    </td>
+                    <td class="text-center d-none d-md-table-cell text-muted small">
+                        <t t-esc="len(order.order_line)"/>
+                    </td>
+                    <td class="text-center">
+                        <span t-if="order.state == 'sale'"
+                              class="badge badge-hh-active">進行中</span>
+                        <span t-elif="order.state == 'done'"
+                              class="badge badge-hh-done">已完成</span>
+                        <span t-elif="order.state == 'cancel'"
+                              class="badge badge-hh-cancel">已取消</span>
+                        <span t-else="" class="badge bg-light text-dark">
+                            <t t-esc="order.state"/>
+                        </span>
+                    </td>
+                </tr>
+            </t>
+        </xpath>
     </template>
 
-    <!-- ===========================================================
-         Hide the "Total" column in the portal Purchase Orders list
-         (補貨紀錄).
-         =========================================================== -->
+
+    <!--
+    ================================================================
+    Hide Total column in portal Purchase Orders list (補貨紀錄).
+    ================================================================
+    -->
     <template id="hh_hide_purchase_list_total"
               inherit_id="purchase.portal_my_purchase_orders"
               name="HH: hide Total column in portal purchase order list">
         <xpath expr="//th[@id='order_total_header']" position="replace"/>
         <xpath expr="//td[@id='order_total']" position="replace"/>
+    </template>
+
+
+    <!--
+    ================================================================
+    Footer cleanup: static company name + remove Powered-by-Odoo.
+    Language selector is deactivated separately (portal view).
+    ================================================================
+    -->
+    <template id="hh_footer_cleanup"
+              inherit_id="web.frontend_layout"
+              name="HH: footer company name + remove brand promotion">
+        <xpath expr="//span[hasclass('o_footer_copyright_name')]" position="replace">
+            <span class="o_footer_copyright_name me-2">版權所有 © Hang Heung Cake Shop Ltd</span>
+        </xpath>
+        <xpath expr="//t[@t-call='web.brand_promotion']" position="replace"/>
     </template>
 
 </odoo>

@@ -7,6 +7,7 @@
         <field name="arch" type="xml">
             <list string="Portal Order Control">
                 <field name="partner_id"/>
+                <field name="flow_type"/>
                 <field name="warehouse_id"/>
                 <field name="pricelist_id"/>
                 <field name="product_count" string="# Products"/>
@@ -39,6 +40,7 @@
                     </div>
                     <group>
                         <group>
+                            <field name="flow_type"/>
                             <field name="pricelist_id" options="{'no_quick_create': True}"/>
                             <field name="warehouse_id"/>
                             <field name="company_id" groups="base.group_multi_company"/>
@@ -97,10 +99,16 @@
         </field>
     </record>
 
-    <menuitem id="menu_portal_order_control"
-              name="Portal Order Control"
+    <!-- Parent menu: one home for all portal-customer setup -->
+    <menuitem id="menu_portal_customers"
+              name="網上落單客戶 (Portal Customers)"
               parent="sale.menu_sale_config"
-              action="action_portal_order_control"
               sequence="50"/>
+
+    <menuitem id="menu_portal_order_control"
+              name="客戶清單 (Customer List)"
+              parent="menu_portal_customers"
+              action="action_portal_order_control"
+              sequence="20"/>
 
 </odoo>
