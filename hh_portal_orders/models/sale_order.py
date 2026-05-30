@@ -75,7 +75,8 @@ class SaleOrder(models.Model):
 class SaleOrderLine(models.Model):
     _inherit = 'sale.order.line'
 
-    @api.depends('order_id.is_portal_record_upload')
+    @api.depends('qty_invoiced', 'qty_delivered', 'product_uom_qty', 'state',
+                 'order_id.is_portal_record_upload')
     def _compute_qty_to_invoice(self):
         """When the SO is a portal record-upload, treat every line as
         ready to invoice based on the ordered qty regardless of the
