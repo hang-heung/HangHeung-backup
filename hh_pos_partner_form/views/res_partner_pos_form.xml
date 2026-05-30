@@ -92,10 +92,9 @@
                 <attribute name="invisible">context.get('from_pos')</attribute>
             </xpath>
 
-            <!-- Studio-created B2B customer flag -->
-            <xpath expr="//field[@name='x_studio_b2b_customer']" position="attributes">
-                <attribute name="invisible">context.get('from_pos')</attribute>
-            </xpath>
+            <!-- Note: x_studio_b2b_customer is owned by the Studio view and
+                 can't be targeted here (Studio doesn't expose it as a model
+                 field). To hide it, edit the Studio view directly. -->
 
             <!-- Hide tabs -->
             <xpath expr="//page[@name='contact_addresses']" position="attributes">
