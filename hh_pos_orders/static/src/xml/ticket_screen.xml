@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="hh_pos_orders.TicketScreen" t-inherit="point_of_sale.TicketScreen" t-inherit-mode="extension">
+
+        <!-- Add a "Payment Method" header just before the Total column -->
+        <xpath expr="//div[hasclass('header-row')]/div[hasclass('end')]" position="before">
+            <div class="col p-2">付款方式 / Payment Method</div>
+        </xpath>
+
+        <!-- And the corresponding row cell -->
+        <xpath expr="//div[hasclass('order-row')]/div[hasclass('end')]" position="before">
+            <div class="col p-2">
+                <div><t t-esc="getPaymentMethods(order)"/></div>
+            </div>
+        </xpath>
+
+    </t>
+</templates>
