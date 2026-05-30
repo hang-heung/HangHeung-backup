@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="hh_pos_buttons.ControlButtons" t-inherit="point_of_sale.ControlButtons" t-inherit-mode="extension">
+        <!-- Internal Note (内部備註): the always-visible OrderlineNoteButton
+             (identified by its `setter` attribute) -->
+        <xpath expr="//OrderlineNoteButton[@setter]" position="replace"/>
+
+        <!-- General Note (一般備註): the one in the More/Actions modal
+             whose label is internalNoteLabel(this.pos.get_order()) -->
+        <xpath expr="//OrderlineNoteButton[@label=&quot;internalNoteLabel(this.pos.get_order())&quot;]" position="replace"/>
+
+        <!-- Customer Note (客戶備註): the one in the More/Actions modal
+             with the sticky-note icon (default label is Customer Note) -->
+        <xpath expr="//OrderlineNoteButton[@icon=&quot;'fa fa-sticky-note'&quot;]" position="replace"/>
+    </t>
+</templates>
