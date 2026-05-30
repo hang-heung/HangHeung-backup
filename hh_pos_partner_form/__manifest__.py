@@ -1,6 +1,6 @@
 {
     'name': 'Hang Heung POS Partner Form Simplify',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'category': 'Point of Sale',
     'summary': 'Hide non-essential res.partner fields in the POS edit dialog',
     'description': """

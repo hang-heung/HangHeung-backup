@@ -63,6 +63,61 @@
                 <attribute name="invisible">context.get('from_pos')</attribute>
             </xpath>
 
+            <!-- Additional fields requested (round 2) -->
+            <xpath expr="//field[@name='company_name']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='function']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='mobile']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='fax_number']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='website']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='lang']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='category_id']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <!-- Studio-created B2B customer flag -->
+            <xpath expr="//field[@name='x_studio_b2b_customer']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <!-- Hide tabs -->
+            <xpath expr="//page[@name='contact_addresses']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='sales_purchases']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='accounting']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='internal_notes']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//page[@name='membership']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
         </field>
     </record>
 </odoo>
