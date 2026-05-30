@@ -39,10 +39,10 @@
                 <attribute name="invisible">context.get('from_pos')</attribute>
             </xpath>
 
-            <xpath expr="//field[@name='occupation']" position="attributes">
-                <attribute name="invisible">context.get('from_pos')</attribute>
-            </xpath>
-
+            <!-- Hide title only when the field is actually in the form. The
+                 `occupation` field requested by the user does not exist on
+                 res.partner in this database; skipped to avoid view-build
+                 errors. -->
             <xpath expr="//field[@name='title']" position="attributes">
                 <attribute name="invisible">context.get('from_pos')</attribute>
             </xpath>
