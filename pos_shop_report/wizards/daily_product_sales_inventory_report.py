@@ -152,12 +152,28 @@ class DailyProductSalesInventoryReport(models.TransientModel):
             ("order_id.company_id","=",company.id),
         ])
 
-        quant_pids = set()
+        current_quant_by_id = defaultdict(float)
         for grp in self.env["stock.quant"].read_group(
-            domain=[("location_id","in",shop_location_ids),("quantity",">",0)],
-            fields=["product_id"], groupby=["product_id"],
+            domain=[("location_id","in",shop_location_ids)],
+            fields=["product_id","quantity:sum"], groupby=["product_id"],
         ):
-            quant_pids.add(grp["product_id"][0])
+            current_quant_by_id[grp["product_id"][0]] = grp["quantity"]
+        quant_pids = set(pid for pid, qty in current_quant_by_id.items() if qty > 0)
+
+        post_in_by_id = defaultdict(float)
+        for grp in StockMove.read_group(
+            domain=[("state","=","done"),("date",">",period_end_utc),
+                    ("company_id","=",company.id),("location_dest_id","in",shop_location_ids)],
+            fields=["product_id","product_uom_qty:sum"], groupby=["product_id"],
+        ):
+            post_in_by_id[grp["product_id"][0]] += grp["product_uom_qty"]
+        post_out_by_id = defaultdict(float)
+        for grp in StockMove.read_group(
+            domain=[("state","=","done"),("date",">",period_end_utc),
+                    ("company_id","=",company.id),("location_id","in",shop_location_ids)],
+            fields=["product_id","product_uom_qty:sum"], groupby=["product_id"],
+        ):
+            post_out_by_id[grp["product_id"][0]] += grp["product_uom_qty"]
 
         active_pids = quant_pids | set(
             list(prev_stock_by_id.keys()) +
@@ -218,16 +234,24 @@ class DailyProductSalesInventoryReport(models.TransientModel):
                 res["discount_amount"] += discount
 
         for res in result.values():
+            pid = res["product_id"]
             res["total_qty_today"] = res["sales_qty"] + res["sales_refund_qty"]
             res["final_amount"] = res["sales_amount"] - res["discount_amount"]
+            # Anchor closing_stock to stock.quant rolled back to period end.
             res["closing_stock"] = (
-                res["previous_stock"]
-                + res["stock_in"]
-                + res["transfer_qty"]
-                - res["sales_qty"]
-                + res["sales_refund_qty"]
-                - res["scrap_qty"]
-                + res["adjustment_qty"]
+                current_quant_by_id.get(pid, 0)
+                - post_in_by_id.get(pid, 0)
+                + post_out_by_id.get(pid, 0)
+            )
+            # Derive previous_stock so the row equation always balances.
+            res["previous_stock"] = (
+                res["closing_stock"]
+                - res["stock_in"]
+                - res["transfer_qty"]
+                + res["sales_qty"]
+                - res["sales_refund_qty"]
+                + res["scrap_qty"]
+                - res["adjustment_qty"]
             )
 
         result = {

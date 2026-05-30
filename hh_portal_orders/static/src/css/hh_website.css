@@ -1,0 +1,21 @@
+/* ================================================================
+   HH Website Customisations
+   ================================================================ */
+
+/* --- Bigger header logo ----------------------------------------- */
+.navbar-brand.logo {
+    padding-top: 2px;
+    padding-bottom: 2px;
+}
+.navbar-brand.logo img,
+.navbar-brand.logo span img {
+    height: 72px !important;
+    width: auto !important;
+    max-width: none !important;
+}
+
+/* --- Hide shopping cart (no public shop) ------------------------ */
+.o_wsale_my_cart,
+#top_menu .o_wsale_my_cart {
+    display: none !important;
+}

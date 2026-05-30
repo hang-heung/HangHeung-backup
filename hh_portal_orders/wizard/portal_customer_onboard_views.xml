@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_portal_customer_onboard_form" model="ir.ui.view">
+        <field name="name">portal.customer.onboard.wizard.form</field>
+        <field name="model">portal.customer.onboard.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Onboard Portal Customer">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>網上落單客戶 / Onboard Portal Customer</h1>
+                    </div>
+                    <group>
+                        <group string="Flow">
+                            <field name="flow_type" widget="radio"/>
+                            <field name="company_id"
+                                   groups="base.group_multi_company"/>
+                        </group>
+                        <group string="Contact &amp; Login">
+                            <field name="partner_id"
+                                   options="{'no_quick_create': True}"/>
+                            <field name="login_email"/>
+                            <field name="login_password"/>
+                        </group>
+                    </group>
+                    <group string="Consignee Warehouse"
+                           invisible="flow_type != 'consignee'">
+                        <field name="needs_warehouse" invisible="1"/>
+                        <field name="existing_warehouse_id"
+                               readonly="1"
+                               invisible="not existing_warehouse_id"/>
+                        <field name="warehouse_code"
+                               required="needs_warehouse"
+                               invisible="not needs_warehouse"
+                               placeholder="e.g. POPMC (max 10 chars)"/>
+                        <div colspan="2"
+                             invisible="not existing_warehouse_id"
+                             class="text-muted">
+                            A warehouse already exists for this consignee; no
+                            new one will be created.
+                        </div>
+                    </group>
+                    <group string="Portal Catalogue">
+                        <field name="pricelist_id"
+                               options="{'no_quick_create': True}"/>
+                        <field name="product_ids"
+                               widget="many2many_tags"
+                               options="{'no_create': True, 'no_quick_create': True, 'no_create_edit': True}"
+                               placeholder="輸入舊貨號 / Type Old Item Code to add..."/>
+                    </group>
+                    <group string="Internal Note">
+                        <field name="note" nolabel="1"
+                               placeholder="Notes for the sales team..."/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm" type="object"
+                            string="Onboard Customer" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_portal_customer_onboard_wizard" model="ir.actions.act_window">
+        <field name="name">新增客戶 / Onboard New Customer</field>
+        <field name="res_model">portal.customer.onboard.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_portal_customer_onboard"
+              name="新增客戶 (Onboard New)"
+              parent="menu_portal_customers"
+              action="action_portal_customer_onboard_wizard"
+              sequence="10"/>
+
+    <!-- Hide the standalone Inventory warehouse wizard; warehouse creation
+         now happens inside the unified onboarding wizard. -->
+    <record id="recreate_HangHeung.menu_consignee_warehouse_wizard" model="ir.ui.menu">
+        <field name="active" eval="False"/>
+    </record>
+
+</odoo>

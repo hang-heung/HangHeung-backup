@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="hh_website_css_asset" model="ir.asset">
+        <field name="name">HH Website Custom CSS</field>
+        <field name="bundle">web.assets_frontend</field>
+        <field name="path">hh_portal_orders/static/src/css/hh_website.css</field>
+    </record>
+</odoo>

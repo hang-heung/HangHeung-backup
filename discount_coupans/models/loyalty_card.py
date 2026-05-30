@@ -131,12 +131,6 @@ class LoyaltyCard(models.Model):
             else:
                 card.discount_at_sale = 0.0
 
-    @api.model
-    def create(self, vals):
-        if vals.get('allocated_store_id') and not vals.get('allocated_date'):
-            vals['allocated_date'] = fields.Date.today()
-        return super().create(vals)
-
     def write(self, vals):
         if 'allocated_store_id' in vals and not vals.get('allocated_date'):
             vals['allocated_date'] = fields.Date.today()
@@ -145,16 +139,37 @@ class LoyaltyCard(models.Model):
             and vals.get('allocated_store_id')
             and 'lot_id' not in vals
         )
+        deallocating = (
+            'allocated_store_id' in vals
+            and not vals.get('allocated_store_id')
+        )
         result = super().write(vals)
         if needs_lot_provisioning:
             self._ensure_loyalty_lot_and_quant()
+        # Remove warehouse quant when coupon leaves circulation (activated/redeemed/invalid)
+        # or is de-allocated from its store
+        if vals.get('status') in ('activated', 'redeemed', 'invalid') or deallocating:
+            self._remove_warehouse_quant()
         return result
+
+    def _remove_warehouse_quant(self):
+        """Remove any internal-location quant for coupons no longer in circulation."""
+        Quant = self.env['stock.quant'].sudo()
+        for card in self:
+            if not card.lot_id:
+                continue
+            quants = Quant.search([
+                ('lot_id', '=', card.lot_id.id),
+                ('location_id.usage', '=', 'internal'),
+                ('quantity', '>', 0),
+            ])
+            quants.unlink()
 
     def _ensure_loyalty_lot_and_quant(self):
         Lot = self.env['stock.lot'].sudo()
         Quant = self.env['stock.quant'].sudo()
         for card in self:
-            if card.lot_id or not card.allocated_store_id:
+            if not card.allocated_store_id:
                 continue
             product = card.program_id.product_id
             if not product:
@@ -164,6 +179,22 @@ class LoyaltyCard(models.Model):
             if not warehouse:
                 continue
             location = warehouse.lot_stock_id or self.env.ref('stock.stock_location_stock')
+
+            if card.lot_id:
+                # Lot already exists — move quant to new warehouse if re-allocated.
+                # Only touch internal-location quants; never pull a Customers-location
+                # quant back into the warehouse (that would happen if the coupon was
+                # already sold before the re-allocation).
+                existing = Quant.search([
+                    ('product_id', '=', product.id),
+                    ('lot_id', '=', card.lot_id.id),
+                    ('location_id.usage', '=', 'internal'),
+                    ('location_id', '!=', location.id),
+                ])
+                existing.write({'location_id': location.id})
+                continue
+
+            # First allocation: create lot + quant
             lot = Lot.search([
                 ('name', '=', card.code),
                 ('product_id', '=', product.id),
@@ -196,6 +227,9 @@ class LoyaltyCard(models.Model):
 
     @api.model
     def create(self, vals):
+        # Set allocated_date if allocated_store_id provided at creation time
+        if vals.get('allocated_store_id') and not vals.get('allocated_date'):
+            vals['allocated_date'] = fields.Date.today()
         if vals.get('range_from') and vals.get('range_to') and vals.get('prefix'):
             try:
                 range_from = int(vals['range_from'])
