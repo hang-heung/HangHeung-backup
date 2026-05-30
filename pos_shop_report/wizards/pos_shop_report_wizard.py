@@ -178,9 +178,36 @@ class POSShopReportWizard(models.TransientModel):
 
         product_ids = list(result.keys())
 
-        # FIX: compute previous_stock directly from stock.move scoped to THIS shop's
-        # warehouse locations. Using qty_available with to_date ignores the warehouse
-        # context in Odoo 18 and returns company-wide stock instead.
+        # Anchor closing stock to stock.quant (ground truth) and roll back
+        # post-period moves for historical reports. Ghost units from direct
+        # quant edits are captured automatically.
+        current_quant_by_id = defaultdict(float)
+        if shop_internal_location_ids:
+            for grp in StockQuant.read_group(
+                domain=[('location_id', 'in', shop_internal_location_ids),
+                        ('product_id', 'in', product_ids)],
+                fields=['product_id', 'quantity:sum'], groupby=['product_id'],
+            ):
+                current_quant_by_id[grp['product_id'][0]] = grp['quantity']
+
+        post_in_by_id = defaultdict(float)
+        post_out_by_id = defaultdict(float)
+        if shop_internal_location_ids:
+            for grp in StockMove.read_group(
+                domain=[('state', '=', 'done'), ('date', '>', end_utc),
+                        ('product_id', 'in', product_ids),
+                        ('location_dest_id', 'in', shop_internal_location_ids)],
+                fields=['product_id', 'product_uom_qty:sum'], groupby=['product_id'],
+            ):
+                post_in_by_id[grp['product_id'][0]] += grp['product_uom_qty']
+            for grp in StockMove.read_group(
+                domain=[('state', '=', 'done'), ('date', '>', end_utc),
+                        ('product_id', 'in', product_ids),
+                        ('location_id', 'in', shop_internal_location_ids)],
+                fields=['product_id', 'product_uom_qty:sum'], groupby=['product_id'],
+            ):
+                post_out_by_id[grp['product_id'][0]] += grp['product_uom_qty']
+
         prev_in = defaultdict(float)
         prev_out = defaultdict(float)
         if shop_internal_location_ids:
@@ -237,12 +264,21 @@ class POSShopReportWizard(models.TransientModel):
                 scrap_by_id[grp['product_id'][0]] = grp['scrap_qty']
 
         for pid, data in result.items():
-            data['previous_stock'] = prev_stock_by_id.get(pid, 0)
             data['stock_in'] = stock_in_by_id.get(pid, 0)
             data['scrap_qty'] = scrap_by_id.get(pid, 0)
+            # Closing stock anchored to stock.quant rolled back to period end
             data['total_qty_today'] = (
-                data['previous_stock'] + data['stock_in']
-                - data['scrap_qty'] - data['sales_qty'] + data['sales_refund_qty']
+                current_quant_by_id.get(pid, 0)
+                - post_in_by_id.get(pid, 0)
+                + post_out_by_id.get(pid, 0)
+            )
+            # Derive previous_stock so the row equation balances
+            data['previous_stock'] = (
+                data['total_qty_today']
+                - data['stock_in']
+                + data['scrap_qty']
+                + data['sales_qty']
+                - data['sales_refund_qty']
             )
             data['final_amount'] = data['sales_amount'] - data['discount_amount']
 
