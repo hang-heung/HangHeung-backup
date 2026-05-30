@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Hide a set of non-essential fields when the partner form is opened
+         from POS (context.from_pos = True). Backend form is unaffected. -->
+    <record id="view_partner_form_hh_pos_hide" model="ir.ui.view">
+        <field name="name">res.partner.form.hh.pos.hide</field>
+        <field name="model">res.partner</field>
+        <!-- Inherit recreate_HangHeung's partner view so all custom fields it
+             adds are already present in the assembled tree we target. -->
+        <field name="inherit_id" ref="recreate_HangHeung.view_contact_form_inherit"/>
+        <field name="priority">100</field>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='contact_number']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='alternative_contact_name']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='customer_credit_limit']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='credit_limit']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='crdr_due_days']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='customer_category_id']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='purchase_auto_confirm']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='occupation']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='title']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='terms']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='vendor']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='customer']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='is_internal_contact']" position="attributes">
+                <attribute name="invisible">context.get('from_pos')</attribute>
+            </xpath>
+
+        </field>
+    </record>
+</odoo>
