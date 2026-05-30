@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates id="template" xml:space="preserve">
+    <t t-name="hh_pos_navbar.Navbar" t-inherit="point_of_sale.Navbar" t-inherit-mode="extension">
+        <!-- Contact search field, to the LEFT of the centre logo -->
+        <xpath expr="//div[hasclass('pos-centerheader')]/img" position="before">
+            <input type="text"
+                   class="form-control form-control-sm me-2 hh-contact-search"
+                   style="max-width: 220px;"
+                   placeholder="搜尋客戶..."
+                   t-on-keydown="(ev) => this.hhOnContactSearchKeydown(ev)"/>
+        </xpath>
+        <!-- Use the company logo for the centre image -->
+        <xpath expr="//div[hasclass('pos-centerheader')]/img" position="attributes">
+            <attribute name="t-att-src">'/web/image/res.company/' + pos.company.id + '/logo'</attribute>
+        </xpath>
+    </t>
+</templates>
