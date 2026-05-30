@@ -1,6 +1,6 @@
 {
     'name': 'Hang Heung POS Navbar',
-    'version': '1.0.0',
+    'version': '1.0.1',
     'category': 'Point of Sale',
     'summary': 'POS top bar: company logo in the middle + contact search to its left',
     'author': 'Lau Siu Hin',
